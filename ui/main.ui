@@ -1,0 +1,62 @@
+<interface>
+    <requires lib="gtk" version="4.0"/>
+
+    <!--Topbar-->
+    <menu id="topbar">
+        <submenu>
+            <attribute name="label">File</attribute>
+            <item><attribute name="label">New</attribute><attribute name="action">app.new</attribute></item>
+            <item><attribute name="label">Open</attribute><attribute name="action">app.open</attribute></item>
+            <item><attribute name="label">Save</attribute><attribute name="action">app.save</attribute></item>
+
+            <section>
+                <item><attribute name="label">Quit</attribute><attribute name="action">app.quit</attribute></item>
+            </section>
+        </submenu>
+    </menu>
+
+    <!--Main window-->
+    <object class="GtkApplicationWindow" id="main_window">
+        <property name="default-width">600</property>
+        <property name="default-height">400</property>
+
+        <child>
+            <object class="GtkBox">
+                <property name="orientation">vertical</property>
+
+                <!--Topbar-->
+                <child>
+                    <object class="GtkPopoverMenuBar">
+                        <property name="menu-model">topbar</property>
+                    </object>
+                </child>
+
+                <!--Main area below-->
+                <child>
+                    <object class="GtkPaned" id="workspace_paned">
+                        <property name="orientation">horizontal</property>
+                        <property name="vexpand">true</property>
+                        <property name="wide-handle">true</property>
+
+                        <!--Main viewport area-->
+                        <child>
+                            <object class="GtkFrame" id="workspace">
+                                <property name="label">Workspace</property>
+                            </object>
+                        </child>
+
+                        <!--Sidepanel (layers & modifiers)-->
+                        <child>
+                            <object class="GtkFrame" id="sidepanel">
+                                <property name="label">Sidepanel</property>
+                            </object>
+                        </child>
+
+                    </object>
+                </child>
+
+            </object>
+        </child>
+
+    </object>
+</interface>
