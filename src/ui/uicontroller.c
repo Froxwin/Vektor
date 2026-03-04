@@ -1,5 +1,6 @@
 #include "uicontroller.h"
 #include "gdk/gdk.h"
+#include "glib-object.h"
 #include "gtk/gtk.h"
 #include "gtk/gtkcssprovider.h"
 
@@ -12,6 +13,7 @@ void vektor_uictrl_init(GtkApplication *app, VektorWidgetState *stateOut) {
     g_error("Fatal: %s", error->message);
   }
 
+  // Load css
   GtkCssProvider* provider = gtk_css_provider_new();
   gtk_css_provider_load_from_path(provider, "./ui/main.css");
   gtk_style_context_add_provider_for_display(gdk_display_get_default(), 
@@ -19,12 +21,16 @@ void vektor_uictrl_init(GtkApplication *app, VektorWidgetState *stateOut) {
     GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
   );
 
+  // populate state
   stateOut->window = GTK_WINDOW(gtk_builder_get_object(builder, "main_window"));
   stateOut->workspacePaned =
       GTK_PANED(gtk_builder_get_object(builder, "workspace_paned"));
   stateOut->workspaceCanvas =
       GTK_PICTURE(gtk_builder_get_object(builder, "workspace"));
+  stateOut->workspaceButtonLinetool =
+      GTK_BUTTON(gtk_builder_get_object(builder, "button_linetool"));
 
+  // Set window properties
   gtk_window_set_application(stateOut->window, app);
   gtk_window_set_title(stateOut->window, "Vektor");
   gtk_window_set_default_size(stateOut->window, 800, 600);

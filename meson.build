@@ -18,7 +18,8 @@ src = files(
   'src/core/primitives.c',
   'src/core/raster.c',
   'src/ui/uicontroller.c',
-  'src/ui/vektorcanvas.c'
+  'src/ui/vektorcanvas.c',
+  'src/application/applicationstate.c'
 )
 
 executable(

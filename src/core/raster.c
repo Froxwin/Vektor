@@ -84,7 +84,7 @@ void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b,
   }
 }
 
-void rasterize(VektorFramebuffer *fb, VektorPrimitiveBuffer *prims) {
+void vektor_framebuffer_rasterize(VektorFramebuffer *fb, VektorPrimitiveBuffer *prims) {
   EdgeBuffer edges = {0};
   for (size_t i = 0; i < prims->count; i++) {
     VektorPrimitive *p = &prims->primitives[i];

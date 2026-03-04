@@ -40,6 +40,6 @@ void vektor_framebuffer_putpixel(VektorFramebuffer *fb, int x, int y,
 void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b,
                                  VektorColor color);
 
-void rasterize(VektorFramebuffer *fb, VektorPrimitiveBuffer *primitives);
+void vektor_framebuffer_rasterize(VektorFramebuffer *fb, VektorPrimitiveBuffer *primitives);
 
 #endif // RASTER_H_

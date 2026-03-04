@@ -12,6 +12,8 @@ typedef struct VektorWidgetState {
   GtkPaned *workspacePaned;
   GtkPicture *workspaceCanvas;
 
+  GtkButton* workspaceButtonLinetool;
+
   // GtkWidget* Workspace
 } VektorWidgetState;
 

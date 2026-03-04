@@ -67,7 +67,7 @@
 
                                         <!--Tool buttons-->
                                         <child>
-                                            <object class="GtkButton">
+                                            <object class="GtkButton" id="button_linetool">
                                                 <property name="icon-name">insert-object-symbolic</property>
                                             </object>
                                         </child>
