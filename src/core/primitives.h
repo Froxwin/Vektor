@@ -27,7 +27,12 @@ typedef struct {
   double radius;
 } VektorCircle;
 
-typedef enum { LINE, POLYLINE, POLYGON, CIRCLE } VektorPrimitiveKind;
+typedef enum {
+  VEKTOR_LINE,
+  VEKTOR_POLYLINE,
+  VEKTOR_POLYGON,
+  VEKTOR_CIRCLE
+} VektorPrimitiveKind;
 
 typedef struct {
   VektorPrimitiveKind kind;
@@ -39,12 +44,21 @@ typedef struct {
   };
 } VektorPrimitive;
 
-VektorPolyline* vektor_polyline_new(void);
+VektorPolyline *vektor_polyline_new(void);
 void vektor_polyline_add_point(VektorPolyline *pl, V2 point);
 void vektor_polyline_free(VektorPolyline *pl);
 
 VektorPolygon *vektor_polygon_new(void);
 void vektor_polygon_add_point(VektorPolygon *pl, V2 point);
 void vektor_polygon_free(VektorPolygon *pl);
+
+typedef struct {
+  VektorPrimitive *primitives;
+  size_t count;
+  size_t capacity;
+} VektorPrimitiveBuffer;
+
+void vektor_primitivebuffer_add_primitive(VektorPrimitiveBuffer *edges,
+                                          VektorPrimitive edge);
 
 #endif // PRIMITIVES_H_

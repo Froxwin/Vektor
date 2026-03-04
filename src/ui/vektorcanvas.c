@@ -1,5 +1,6 @@
 #include "gtk/gtk.h"
 
+#include "../core/raster.h"
 #include "uicontroller.h"
 #include "vektorcanvas.h"
 
@@ -40,7 +41,7 @@ void vektor_canvas_update(VektorCanvas *canvas) {
                             GDK_PAINTABLE(canvas->canvasTexture));
 }
 
-void vektor_canvas_fill(VektorCanvas *canvas, VektorCanvasColor color) {
+void vektor_canvas_fill(VektorCanvas *canvas, VektorColor color) {
   for (int x = 0; x < VKTR_CANVAS_WIDTH; x++) {
     for (int y = 0; y < VKTR_CANVAS_HEIGHT; y++) {
       int i = (y * VKTR_CANVAS_WIDTH + x) * 4;
@@ -52,7 +53,15 @@ void vektor_canvas_fill(VektorCanvas *canvas, VektorCanvasColor color) {
   }
 }
 
-VektorCanvasColor vektor_color_new(guchar cr, guchar cg, guchar cb, guchar ca) {
-  VektorCanvasColor c = {.r = cr, .g = cg, .b = cb, .a = ca};
-  return c;
+void vektor_canvas_drawfrom(VektorFramebuffer *fb, VektorCanvas *target) {
+  for (int x = 0; x < fb->width; x++) {
+    for (int y = 0; y < fb->height; y++) {
+
+      int i = (y * fb->width + x) * 4;
+      target->canvasPixels[i + 0] = (guchar)fb->pixels[i + 0];
+      target->canvasPixels[i + 1] = (guchar)fb->pixels[i + 1];
+      target->canvasPixels[i + 2] = (guchar)fb->pixels[i + 2];
+      target->canvasPixels[i + 3] = (guchar)fb->pixels[i + 3];
+    }
+  }
 }

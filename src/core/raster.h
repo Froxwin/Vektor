@@ -2,8 +2,8 @@
 #define RASTER_H_
 
 #include "primitives.h"
-#include "../ui/vektorcanvas.h"
 
+#include "src/util/color.h"
 #include "stddef.h"
 #include "vector.h"
 
@@ -21,9 +21,9 @@ typedef struct {
 
 void vektor_edgebuffer_add_edge(EdgeBuffer *edges, Edge edge);
 
-void vektor_edgebuffer_flatten_line(EdgeBuffer *edges, VektorLine line);
-void vektor_edgebuffer_flatten_polyline(EdgeBuffer *edges, VektorPolyline *line);
-void vektor_edgebuffer_flatten_polygon(EdgeBuffer *buffer, VektorPolygon *line);
+void vektor_line_flatten(EdgeBuffer *edges, VektorLine line);
+void vektor_polyline_flatten(EdgeBuffer *edges, VektorPolyline *line);
+void vektor_polygon_flatten(EdgeBuffer *buffer, VektorPolygon *line);
 
 typedef struct {
   unsigned int width;
@@ -31,14 +31,15 @@ typedef struct {
   unsigned char *pixels; // Flat RGBA8 array
 } VektorFramebuffer;
 
-VektorFramebuffer vektor_framebuffer_new(unsigned int width, unsigned int height);
+VektorFramebuffer vektor_framebuffer_new(unsigned int width,
+                                         unsigned int height);
 
-void vektor_framebuffer_putpixel(VektorFramebuffer *fb, int x, int y, unsigned char r, unsigned char g,
-               unsigned char b);
+void vektor_framebuffer_putpixel(VektorFramebuffer *fb, int x, int y,
+                                 VektorColor color);
 
-void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b, unsigned char r, unsigned char g,
-               unsigned char bl);
+void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b,
+                                 VektorColor color);
 
-void vektor_framebuffer_drawto(VektorFramebuffer* fb, VektorCanvas* canvas);
+void rasterize(VektorFramebuffer *fb, VektorPrimitiveBuffer *primitives);
 
 #endif // RASTER_H_
