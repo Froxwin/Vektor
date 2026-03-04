@@ -5,7 +5,7 @@
 
 // Row major 3x3 matricies
 typedef struct {
-  double m[3][3];
+    double m[3][3];
 } M33;
 
 M33 m33_identity(void);

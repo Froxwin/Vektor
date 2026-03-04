@@ -8,13 +8,13 @@ Global application widget state, holding references to
 all the widgets used in internal logic of the program
 */
 typedef struct VektorWidgetState {
-  GtkWindow *window;
-  GtkPaned *workspacePaned;
-  GtkPicture *workspaceCanvas;
+    GtkWindow *window;
+    GtkPaned *workspacePaned;
+    GtkPicture *workspaceCanvas;
 
-  GtkButton* workspaceButtonLinetool;
+    GtkButton *workspaceButtonLinetool;
 
-  // GtkWidget* Workspace
+    // GtkWidget* Workspace
 } VektorWidgetState;
 
 void vektor_uictrl_init(GtkApplication *app, VektorWidgetState *stateOut);
