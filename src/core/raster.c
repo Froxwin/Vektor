@@ -34,7 +34,7 @@ void vektor_edgebuffer_flatten_polygon(EdgeBuffer *buffer, VektorPolygon *pg) {
 }
 
 inline VektorFramebuffer vektor_framebuffer_new(unsigned int W, unsigned int H) {
-  VektorFramebuffer fb = {.width = W, .height = H, .pixels = calloc(W * H * 3, 1)};
+  VektorFramebuffer fb = {.width = W, .height = H, .pixels = calloc(W * H * 4, 1)};
   return fb;
 }
 
@@ -43,10 +43,11 @@ inline void vektor_framebuffer_putpixel(VektorFramebuffer *fb, int x, int y, uns
   if ((unsigned)x >= fb->width || (unsigned)y >= fb->height)
     return;
 
-  int i = (y * fb->width + x) * 3;
+  int i = (y * fb->width + x) * 4;
   fb->pixels[i + 0] = r;
   fb->pixels[i + 1] = g;
   fb->pixels[i + 2] = b;
+  fb->pixels[i + 3] = 255;
 }
 
 void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b, unsigned char r, unsigned char g,
@@ -75,6 +76,19 @@ void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b, unsigned cha
     if (e2 <= dx) {
       err += dx;
       y0 += sy;
+    }
+  }
+}
+
+void vektor_framebuffer_drawto(VektorFramebuffer* fb, VektorCanvas* target) {
+  for(int x = 0; x < fb->width; x++) {
+    for(int y = 0; y < fb->height; y++) {
+
+      int i = (y * fb->width + x) * 4;
+      target->canvasPixels[i+0] = (guchar)fb->pixels[i+0];
+      target->canvasPixels[i+1] = (guchar)fb->pixels[i+1];
+      target->canvasPixels[i+2] = (guchar)fb->pixels[i+2];
+      target->canvasPixels[i+3] = (guchar)fb->pixels[i+3];
     }
   }
 }

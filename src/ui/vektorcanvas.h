@@ -24,7 +24,7 @@ typedef struct VektorCanvasColor {
 
 void vektor_canvas_init(VektorWidgetState *state, VektorCanvas *canvasOut);
 void vektor_canvas_update(VektorCanvas *canvas);
-void vektor_canvas_fill(VektorCanvas *canvas, VektorCanvasColor *color);
+void vektor_canvas_fill(VektorCanvas *canvas, VektorCanvasColor color);
 
 VektorCanvasColor vektor_color_new(guchar r, guchar g, guchar b, guchar a);
 

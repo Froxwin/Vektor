@@ -2,6 +2,8 @@
 #define RASTER_H_
 
 #include "primitives.h"
+#include "../ui/vektorcanvas.h"
+
 #include "stddef.h"
 #include "vector.h"
 
@@ -26,7 +28,7 @@ void vektor_edgebuffer_flatten_polygon(EdgeBuffer *buffer, VektorPolygon *line);
 typedef struct {
   unsigned int width;
   unsigned int height;
-  unsigned char *pixels; // Flat RGB8 array
+  unsigned char *pixels; // Flat RGBA8 array
 } VektorFramebuffer;
 
 VektorFramebuffer vektor_framebuffer_new(unsigned int width, unsigned int height);
@@ -36,5 +38,7 @@ void vektor_framebuffer_putpixel(VektorFramebuffer *fb, int x, int y, unsigned c
 
 void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b, unsigned char r, unsigned char g,
                unsigned char bl);
+
+void vektor_framebuffer_drawto(VektorFramebuffer* fb, VektorCanvas* canvas);
 
 #endif // RASTER_H_
