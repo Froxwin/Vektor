@@ -14,7 +14,9 @@ gtk = dependency('gtk4', required: true)
 
 src = files(
   'src/main.c',
-  'src/matrix.c',
+  'src/core/matrix.c',
+  'src/core/primitives.c',
+  'src/core/raster.c',
   'src/ui/uicontroller.c',
   'src/ui/vektorcanvas.c'
 )

@@ -1,6 +1,8 @@
 #include "matrix.h"
 #include <math.h>
 
+inline M33 m33_zero(void) { return (M33){{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}}; }
+
 inline M33 m33_identity(void) {
   return (M33){{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}};
 }
@@ -16,6 +18,10 @@ inline M33 m33_scale(double sx, double sy) {
 inline M33 m33_rotate(double theta) {
   return (M33){
       {{cos(theta), -sin(theta), 0}, {sin(theta), cos(theta), 0}, {0, 0, 1}}};
+}
+
+inline M33 m33_shear(double theta_x, double theta_y) {
+  return (M33){{{1, tan(theta_x), 0}, {tan(theta_y), 1, 0}, {0, 0, 0}}};
 }
 
 M33 m33_add(const M33 m1, const M33 m2) {

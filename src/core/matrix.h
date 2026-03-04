@@ -12,6 +12,7 @@ M33 m33_identity(void);
 M33 m33_translate(double tx, double ty);
 M33 m33_scale(double sx, double sy);
 M33 m33_rotate(double rad);
+M33 m33_shear(double theta_x, double theta_y);
 
 M33 m33_add(const M33 m1, const M33 m2);
 M33 m33_sub(const M33 m1, const M33 m2);

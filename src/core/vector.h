@@ -8,6 +8,16 @@ typedef struct {
   double y;
 } V2;
 
+typedef struct {
+  double x;
+  double y;
+  double z;
+} V3;
+
+static inline V3 vec2_vector(const V2 v) { return (V3){v.x, v.y, 0}; }
+
+static inline V3 vec2_point(const V2 v) { return (V3){v.x, v.y, 1}; }
+
 static inline V2 vec2_add(const V2 v1, const V2 v2) {
   return (V2){v1.x + v2.x, v1.y + v2.y};
 }
