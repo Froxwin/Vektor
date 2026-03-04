@@ -45,3 +45,13 @@ void vektor_polygon_free(VektorPolygon *pg) {
   free(pg->points);
   free(pg);
 }
+
+void vektor_primitivebuffer_add_primitive(VektorPrimitiveBuffer *buffer,
+                                          VektorPrimitive prim) {
+  if (buffer->count >= buffer->capacity) {
+    buffer->capacity = buffer->capacity ? buffer->capacity * 2 : 4;
+    buffer->primitives =
+        realloc(buffer->primitives, sizeof(VektorPrimitive) * buffer->capacity);
+  }
+  buffer->primitives[buffer->count++] = prim;
+}

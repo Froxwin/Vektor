@@ -1,6 +1,7 @@
 #include "raster.h"
 #include "primitives.h"
 #include "stddef.h"
+#include <stddef.h>
 
 void vektor_edgebuffer_add_edge(EdgeBuffer *buffer, Edge edge) {
   if (buffer->count >= buffer->capacity) {
@@ -10,17 +11,18 @@ void vektor_edgebuffer_add_edge(EdgeBuffer *buffer, Edge edge) {
   buffer->edges[buffer->count++] = edge;
 }
 
-void vektor_edgebuffer_flatten_line(EdgeBuffer *buffer, VektorLine line) {
+void vektor_line_flatten(EdgeBuffer *buffer, VektorLine line) {
   vektor_edgebuffer_add_edge(buffer, (Edge){line.p1, line.p2, 0});
 }
 
-void vektor_edgebuffer_flatten_polyline(EdgeBuffer *buffer, VektorPolyline *line) {
+void vektor_polyline_flatten(EdgeBuffer *buffer, VektorPolyline *line) {
   for (size_t i = 0; i + 1 < line->count; i++) {
-    vektor_edgebuffer_add_edge(buffer, (Edge){line->points[i], line->points[i + 1], 0});
+    vektor_edgebuffer_add_edge(buffer,
+                               (Edge){line->points[i], line->points[i + 1], 0});
   }
 }
 
-void vektor_edgebuffer_flatten_polygon(EdgeBuffer *buffer, VektorPolygon *pg) {
+void vektor_polygon_flatten(EdgeBuffer *buffer, VektorPolygon *pg) {
   size_t n = pg->count;
   if (n < 3)
     return;
@@ -33,25 +35,27 @@ void vektor_edgebuffer_flatten_polygon(EdgeBuffer *buffer, VektorPolygon *pg) {
   }
 }
 
-inline VektorFramebuffer vektor_framebuffer_new(unsigned int W, unsigned int H) {
-  VektorFramebuffer fb = {.width = W, .height = H, .pixels = calloc(W * H * 4, 1)};
+inline VektorFramebuffer vektor_framebuffer_new(unsigned int W,
+                                                unsigned int H) {
+  VektorFramebuffer fb = {
+      .width = W, .height = H, .pixels = calloc(W * H * 4, 1)};
   return fb;
 }
 
-inline void vektor_framebuffer_putpixel(VektorFramebuffer *fb, int x, int y, unsigned char r,
-                      unsigned char g, unsigned char b) {
+inline void vektor_framebuffer_putpixel(VektorFramebuffer *fb, int x, int y,
+                                        VektorColor color) {
   if ((unsigned)x >= fb->width || (unsigned)y >= fb->height)
     return;
 
   int i = (y * fb->width + x) * 4;
-  fb->pixels[i + 0] = r;
-  fb->pixels[i + 1] = g;
-  fb->pixels[i + 2] = b;
-  fb->pixels[i + 3] = 255;
+  fb->pixels[i + 0] = color.r;
+  fb->pixels[i + 1] = color.g;
+  fb->pixels[i + 2] = color.b;
+  fb->pixels[i + 3] = color.a;
 }
 
-void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b, unsigned char r, unsigned char g,
-               unsigned char bl) {
+void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b,
+                                 VektorColor color) {
   int x0 = (int)a.x;
   int y0 = (int)a.y;
   int x1 = (int)b.x;
@@ -64,7 +68,7 @@ void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b, unsigned cha
   int err = dx + dy;
 
   for (;;) {
-    vektor_framebuffer_putpixel(fb, x0, y0, r, g, bl);
+    vektor_framebuffer_putpixel(fb, x0, y0, color);
     if (x0 == x1 && y0 == y1)
       break;
 
@@ -80,15 +84,32 @@ void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b, unsigned cha
   }
 }
 
-void vektor_framebuffer_drawto(VektorFramebuffer* fb, VektorCanvas* target) {
-  for(int x = 0; x < fb->width; x++) {
-    for(int y = 0; y < fb->height; y++) {
+void rasterize(VektorFramebuffer *fb, VektorPrimitiveBuffer *prims) {
+  EdgeBuffer edges = {0};
+  for (size_t i = 0; i < prims->count; i++) {
+    VektorPrimitive *p = &prims->primitives[i];
 
-      int i = (y * fb->width + x) * 4;
-      target->canvasPixels[i+0] = (guchar)fb->pixels[i+0];
-      target->canvasPixels[i+1] = (guchar)fb->pixels[i+1];
-      target->canvasPixels[i+2] = (guchar)fb->pixels[i+2];
-      target->canvasPixels[i+3] = (guchar)fb->pixels[i+3];
+    switch (p->kind) {
+    case VEKTOR_LINE:
+      vektor_line_flatten(&edges, p->line);
+      break;
+
+    case VEKTOR_POLYLINE:
+      vektor_polyline_flatten(&edges, p->polyline);
+      break;
+
+    case VEKTOR_POLYGON:
+      vektor_polygon_flatten(&edges, p->polygon);
+      break;
+
+    default:
+      // TODO fill in all primitives
+      break;
     }
+  }
+
+  for (size_t i = 0; i < edges.count; i++) {
+    vektor_framebuffer_drawline(fb, edges.edges[i].p1, edges.edges[i].p2,
+                                vektor_color_solid(255, 0, 255));
   }
 }

@@ -1,6 +1,8 @@
 #ifndef VKTR_CANVAS_H
 #define VKTR_CANVAS_H
 
+#include "../core/raster.h"
+#include "../util/color.h"
 #include "uicontroller.h"
 
 typedef struct VektorCanvas {
@@ -15,17 +17,9 @@ typedef struct VektorCanvas {
   int height;
 } VektorCanvas;
 
-typedef struct VektorCanvasColor {
-  guchar r;
-  guchar g;
-  guchar b;
-  guchar a;
-} VektorCanvasColor;
-
 void vektor_canvas_init(VektorWidgetState *state, VektorCanvas *canvasOut);
 void vektor_canvas_update(VektorCanvas *canvas);
-void vektor_canvas_fill(VektorCanvas *canvas, VektorCanvasColor color);
-
-VektorCanvasColor vektor_color_new(guchar r, guchar g, guchar b, guchar a);
+void vektor_canvas_fill(VektorCanvas *canvas, VektorColor color);
+void vektor_canvas_drawfrom(VektorFramebuffer *fb, VektorCanvas *canvas);
 
 #endif
