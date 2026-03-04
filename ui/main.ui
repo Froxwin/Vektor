@@ -38,12 +38,48 @@
                         <property name="vexpand">true</property>
                         <property name="wide-handle">true</property>
 
-                        <!--Main viewport area-->
+                        
                         <child>
-                            <object class="GtkPicture" id="workspace">
-                                <property name="content-fit">cover</property>
-                                <property name="hexpand">true</property>
-                                <property name="vexpand">true</property>
+                            <!--Overlay to hold tool selector and canvas-->
+                            <object class="GtkOverlay">
+
+                                <!--Main canvas-->
+                                <child>
+                                    <object class="GtkPicture" id="workspace">
+                                        <property name="content-fit">contain</property>
+                                        <property name="hexpand">true</property>
+                                        <property name="vexpand">true</property>
+
+                                    </object>
+                                </child>
+
+                                <!--Tool selector-->
+                                <child type="overlay">
+                                    <object class="GtkBox" id="toolstrip">
+                                        <property name="orientation">vertical</property>
+                                        <property name="spacing">6</property>
+                                        <property name="halign">start</property>
+                                        <property name="valign">center</property>
+
+                                        <property name="margin-start">12</property>
+                                        <property name="margin-top">12</property>
+                                        <property name="margin-bottom">12</property>
+
+                                        <!--Tool buttons-->
+                                        <child>
+                                            <object class="GtkButton">
+                                                <property name="icon-name">insert-object-symbolic</property>
+                                            </object>
+                                        </child>
+
+                                        <child>
+                                            <object class="GtkButton">
+                                                <property name="icon-name">edit-copy-symbolic</property>
+                                            </object>
+                                        </child>
+
+                                    </object>
+                                </child>
 
                             </object>
                         </child>

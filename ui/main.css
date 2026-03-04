@@ -1,0 +1,9 @@
+#toolstrip {
+    background: rgba(0,0,0,.6);
+    padding: 6px;
+    border-radius: 8px;
+}
+
+button {
+    background: none;
+}
