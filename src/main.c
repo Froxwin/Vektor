@@ -28,7 +28,7 @@ static void activate(GtkApplication *app, gpointer user_data) {
   gtk_window_present(widget_state->window);
 }
 
-void write_ppm(const char *path, const Framebuffer *fb) {
+void write_ppm(const char *path, const VektorFramebuffer *fb) {
   FILE *f = fopen(path, "wb");
   if (!f)
     abort();
@@ -39,18 +39,18 @@ void write_ppm(const char *path, const Framebuffer *fb) {
 }
 
 int main(int argc, char **argv) {
-  Framebuffer fb = mk_framebuffer(256, 256);
+  VektorFramebuffer fb = vektor_framebuffer_new(256, 256);
   EdgeBuffer edges = {0};
 
-  Polygon pg = *mk_polygon();
-  add_point_polygon(&pg, (V2){50, 50});
-  add_point_polygon(&pg, (V2){200, 80});
-  add_point_polygon(&pg, (V2){120, 200});
+  VektorPolygon pg = *vektor_polygon_new();
+  vektor_polygon_add_point(&pg, (V2){50, 50});
+  vektor_polygon_add_point(&pg, (V2){200, 80});
+  vektor_polygon_add_point(&pg, (V2){120, 200});
 
-  flatten_polygon(&edges, &pg);
+  vektor_edgebuffer_flatten_polygon(&edges, &pg);
 
   for (size_t i = 0; i < edges.count; i++) {
-    draw_line(&fb, edges.edges[i].p1, edges.edges[i].p2, 255, 255, 255);
+    vektor_framebuffer_drawline(&fb, edges.edges[i].p1, edges.edges[i].p2, 255, 255, 255);
   }
 
   write_ppm("out.ppm", &fb);

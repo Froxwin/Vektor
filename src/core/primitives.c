@@ -1,14 +1,14 @@
 #include "primitives.h"
 
-Polyline *mk_polyline(void) {
-  Polyline *pl = malloc(sizeof(Polyline));
+VektorPolyline *vektor_polyline_new(void) {
+  VektorPolyline *pl = malloc(sizeof(VektorPolyline));
   pl->count = 0;
   pl->capacity = 4;
   pl->points = malloc(sizeof(V2) * pl->capacity);
   return pl;
 }
 
-void add_point_polyline(Polyline *pl, V2 point) {
+void vektor_polyline_add_point(VektorPolyline *pl, V2 point) {
   if (pl->count >= pl->capacity) {
     pl->capacity *= 2;
     pl->points = realloc(pl->points, sizeof(V2) * pl->capacity);
@@ -16,22 +16,22 @@ void add_point_polyline(Polyline *pl, V2 point) {
   pl->points[pl->count++] = point;
 }
 
-void free_polyline(Polyline *pl) {
+void vektor_polyline_free(VektorPolyline *pl) {
   if (!pl)
     return;
   free(pl->points);
   free(pl);
 }
 
-Polygon *mk_polygon(void) {
-  Polygon *pg = malloc(sizeof(Polygon));
+VektorPolygon *vektor_polygon_new(void) {
+  VektorPolygon *pg = malloc(sizeof(VektorPolygon));
   pg->count = 0;
   pg->capacity = 4;
   pg->points = malloc(sizeof(V2) * pg->capacity);
   return pg;
 }
 
-void add_point_polygon(Polygon *pg, V2 point) {
+void vektor_polygon_add_point(VektorPolygon *pg, V2 point) {
   if (pg->count >= pg->capacity) {
     pg->capacity *= 2;
     pg->points = realloc(pg->points, sizeof(V2) * pg->capacity);
@@ -39,7 +39,7 @@ void add_point_polygon(Polygon *pg, V2 point) {
   pg->points[pg->count++] = point;
 }
 
-void free_polygon(Polygon *pg) {
+void vektor_polygon_free(VektorPolygon *pg) {
   if (!pg)
     return;
   free(pg->points);

@@ -17,24 +17,24 @@ typedef struct {
   size_t capacity;
 } EdgeBuffer;
 
-void add_edge(EdgeBuffer *edges, Edge edge);
+void vektor_edgebuffer_add_edge(EdgeBuffer *edges, Edge edge);
 
-void flatten_line(EdgeBuffer *edges, Line line);
-void flatten_polyline(EdgeBuffer *edges, Polyline *line);
-void flatten_polygon(EdgeBuffer *buffer, Polygon *line);
+void vektor_edgebuffer_flatten_line(EdgeBuffer *edges, VektorLine line);
+void vektor_edgebuffer_flatten_polyline(EdgeBuffer *edges, VektorPolyline *line);
+void vektor_edgebuffer_flatten_polygon(EdgeBuffer *buffer, VektorPolygon *line);
 
 typedef struct {
   unsigned int width;
   unsigned int height;
   unsigned char *pixels; // Flat RGB8 array
-} Framebuffer;
+} VektorFramebuffer;
 
-Framebuffer mk_framebuffer(unsigned int width, unsigned int height);
+VektorFramebuffer vektor_framebuffer_new(unsigned int width, unsigned int height);
 
-void put_pixel(Framebuffer *fb, int x, int y, unsigned char r, unsigned char g,
+void vektor_framebuffer_putpixel(VektorFramebuffer *fb, int x, int y, unsigned char r, unsigned char g,
                unsigned char b);
 
-void draw_line(Framebuffer *fb, V2 a, V2 b, unsigned char r, unsigned char g,
+void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b, unsigned char r, unsigned char g,
                unsigned char bl);
 
 #endif // RASTER_H_

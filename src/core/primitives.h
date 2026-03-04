@@ -8,43 +8,43 @@
 typedef struct {
   V2 p1;
   V2 p2;
-} Line;
+} VektorLine;
 
 typedef struct {
   V2 *points;
   size_t count;
   size_t capacity;
-} Polyline;
+} VektorPolyline;
 
 typedef struct {
   V2 *points;
   size_t count;
   size_t capacity;
-} Polygon;
+} VektorPolygon;
 
 typedef struct {
   V2 center;
   double radius;
-} Circle;
+} VektorCircle;
 
-typedef enum { LINE, POLYLINE, POLYGON, CIRCLE } PrimitiveKind;
+typedef enum { LINE, POLYLINE, POLYGON, CIRCLE } VektorPrimitiveKind;
 
 typedef struct {
-  PrimitiveKind kind;
+  VektorPrimitiveKind kind;
   union {
-    Line line;
-    Polyline *polyline;
-    Polygon *polygon;
-    Circle circle;
+    VektorLine line;
+    VektorPolyline *polyline;
+    VektorPolygon *polygon;
+    VektorCircle circle;
   };
-} Primitive;
+} VektorPrimitive;
 
-Polyline *mk_polyline(void);
-void add_point_polyline(Polyline *pl, V2 point);
-void free_polyline(Polyline *pl);
+VektorPolyline* vektor_polyline_new(void);
+void vektor_polyline_add_point(VektorPolyline *pl, V2 point);
+void vektor_polyline_free(VektorPolyline *pl);
 
-Polygon *mk_polygon(void);
-void add_point_polygon(Polygon *pl, V2 point);
-void free_polygon(Polygon *pl);
+VektorPolygon *vektor_polygon_new(void);
+void vektor_polygon_add_point(VektorPolygon *pl, V2 point);
+void vektor_polygon_free(VektorPolygon *pl);
 
 #endif // PRIMITIVES_H_
