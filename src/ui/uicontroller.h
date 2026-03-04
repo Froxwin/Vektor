@@ -9,8 +9,9 @@ all the widgets used in internal logic of the program
 */
 typedef struct VektorWidgetState {
     GtkWindow* window;
-
     GtkPaned* workspacePaned;
+    GtkPicture* workspaceCanvas;
+    
     //GtkWidget* Workspace
 } VektorWidgetState;
 

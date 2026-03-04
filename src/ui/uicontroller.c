@@ -14,6 +14,7 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
 
     stateOut->window = GTK_WINDOW(gtk_builder_get_object(builder, "main_window"));
     stateOut->workspacePaned = GTK_PANED(gtk_builder_get_object(builder, "workspace_paned"));
+    stateOut->workspaceCanvas = GTK_PICTURE(gtk_builder_get_object(builder, "workspace"));
 
     gtk_window_set_application(stateOut->window, app);
     gtk_window_set_title(stateOut->window, "Vektor");

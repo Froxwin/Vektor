@@ -40,8 +40,11 @@
 
                         <!--Main viewport area-->
                         <child>
-                            <object class="GtkFrame" id="workspace">
-                                <property name="label">Workspace</property>
+                            <object class="GtkPicture" id="workspace">
+                                <property name="content-fit">cover</property>
+                                <property name="hexpand">true</property>
+                                <property name="vexpand">true</property>
+
                             </object>
                         </child>
 

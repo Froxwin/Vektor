@@ -3,6 +3,7 @@
 #include "stdlib.h"
 
 #include "./ui/uicontroller.h"
+#include "./ui/vektorcanvas.h"
 
 
 static void on_map(GtkWidget* window, gpointer user_data) {
@@ -13,6 +14,12 @@ static void activate(GtkApplication *app, gpointer user_data) {
 
   VektorWidgetState* widget_state = (VektorWidgetState*)malloc(sizeof(VektorWidgetState));
   vektor_uictrl_init(app, widget_state);
+
+  VektorCanvas* canvas = (VektorCanvas*)malloc(sizeof(VektorCanvas));
+  vektor_canvas_init(widget_state, canvas);
+  VektorCanvasColor red = vektor_color_new(255, 0, 0, 255);
+  vektor_canvas_fill(canvas, &red);
+  vektor_canvas_update(canvas);
 
   g_signal_connect(widget_state->window, "map", G_CALLBACK(on_map), widget_state);
 
