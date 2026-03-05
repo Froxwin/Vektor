@@ -11,6 +11,7 @@ project(
 )
 
 gtk = dependency('gtk4', required: true)
+epoxy = dependency('epoxy')
 
 src = files(
   'src/main.c',
@@ -25,7 +26,7 @@ src = files(
 executable(
   'vektor',
   src,
-  dependencies: [gtk],
+  dependencies: [gtk,epoxy],
   link_args: ['-lm'],
   install: true,
 )

@@ -26,7 +26,7 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
     stateOut->workspacePaned =
         GTK_PANED(gtk_builder_get_object(builder, "workspace_paned"));
     stateOut->workspaceCanvas =
-        GTK_PICTURE(gtk_builder_get_object(builder, "workspace"));
+        GTK_GL_AREA(gtk_builder_get_object(builder, "workspace"));
     stateOut->workspaceButtonLinetool =
         GTK_BUTTON(gtk_builder_get_object(builder, "button_linetool"));
 

@@ -3,10 +3,11 @@
 
 #include "../core/raster.h"
 #include "../util/color.h"
+#include "gtk/gtk.h"
 #include "uicontroller.h"
 
 typedef struct VektorCanvas {
-    GtkPicture* canvasWidget;
+    GtkGLArea* canvasWidget;
 
     // texture related stuff
     guchar* canvasPixels;

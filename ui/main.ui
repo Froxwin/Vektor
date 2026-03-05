@@ -45,11 +45,16 @@
 
                                 <!--Main canvas-->
                                 <child>
-                                    <object class="GtkPicture" id="workspace">
+                                    <!-- <object class="GtkPicture" id="workspace">
                                         <property name="content-fit">contain</property>
                                         <property name="hexpand">true</property>
                                         <property name="vexpand">true</property>
 
+                                    </object> -->
+
+                                    <object class="GtkGLArea" id="workspace">
+                                        <property name="hexpand">true</property>
+                                        <property name="vexpand">true</property>
                                     </object>
                                 </child>
 
