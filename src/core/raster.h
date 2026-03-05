@@ -14,33 +14,33 @@ typedef struct {
 } Edge;
 
 typedef struct {
-    Edge *edges;
+    Edge* edges;
     size_t count;
     size_t capacity;
 } EdgeBuffer;
 
-void vektor_edgebuffer_add_edge(EdgeBuffer *edges, Edge edge);
+void vektor_edgebuffer_add_edge(EdgeBuffer* edges, Edge edge);
 
-void vektor_line_flatten(EdgeBuffer *edges, VektorLine line);
-void vektor_polyline_flatten(EdgeBuffer *edges, VektorPolyline *line);
-void vektor_polygon_flatten(EdgeBuffer *buffer, VektorPolygon *line);
+void vektor_line_flatten(EdgeBuffer* edges, VektorLine line);
+void vektor_polyline_flatten(EdgeBuffer* edges, VektorPolyline* line);
+void vektor_polygon_flatten(EdgeBuffer* buffer, VektorPolygon* line);
 
 typedef struct {
     unsigned int width;
     unsigned int height;
-    unsigned char *pixels; // Flat RGBA8 array
+    unsigned char* pixels; // Flat RGBA8 array
 } VektorFramebuffer;
 
 VektorFramebuffer vektor_framebuffer_new(unsigned int width,
                                          unsigned int height);
 
-void vektor_framebuffer_putpixel(VektorFramebuffer *fb, int x, int y,
+void vektor_framebuffer_putpixel(VektorFramebuffer* fb, int x, int y,
                                  VektorColor color);
 
-void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b,
+void vektor_framebuffer_drawline(VektorFramebuffer* fb, V2 a, V2 b,
                                  VektorColor color, double thickness);
 
-void vektor_framebuffer_rasterize(VektorFramebuffer *fb,
-                                  VektorPrimitiveBuffer *primitives);
+void vektor_framebuffer_rasterize(VektorFramebuffer* fb,
+                                  VektorPrimitiveBuffer* primitives);
 
 #endif // RASTER_H_

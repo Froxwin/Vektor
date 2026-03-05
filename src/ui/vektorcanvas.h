@@ -6,20 +6,20 @@
 #include "uicontroller.h"
 
 typedef struct VektorCanvas {
-    GtkPicture *canvasWidget;
+    GtkPicture* canvasWidget;
 
     // texture related stuff
-    guchar *canvasPixels;
-    GdkTexture *canvasTexture;
-    GBytes *canvasPixelBytes;
+    guchar* canvasPixels;
+    GdkTexture* canvasTexture;
+    GBytes* canvasPixelBytes;
 
     int width;
     int height;
 } VektorCanvas;
 
-void vektor_canvas_init(VektorWidgetState *state, VektorCanvas *canvasOut);
-void vektor_canvas_update(VektorCanvas *canvas);
-void vektor_canvas_fill(VektorCanvas *canvas, VektorColor color);
-void vektor_canvas_drawfrom(VektorFramebuffer *fb, VektorCanvas *canvas);
+void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut);
+void vektor_canvas_update(VektorCanvas* canvas);
+void vektor_canvas_fill(VektorCanvas* canvas, VektorColor color);
+void vektor_canvas_drawfrom(VektorFramebuffer* fb, VektorCanvas* canvas);
 
 #endif

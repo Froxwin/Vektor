@@ -3,7 +3,7 @@
 #include "stddef.h"
 #include <stddef.h>
 
-void vektor_edgebuffer_add_edge(EdgeBuffer *buffer, Edge edge) {
+void vektor_edgebuffer_add_edge(EdgeBuffer* buffer, Edge edge) {
     if (buffer->count >= buffer->capacity) {
         buffer->capacity = buffer->capacity ? buffer->capacity * 2 : 4;
         buffer->edges = realloc(buffer->edges, sizeof(Edge) * buffer->capacity);
@@ -11,18 +11,18 @@ void vektor_edgebuffer_add_edge(EdgeBuffer *buffer, Edge edge) {
     buffer->edges[buffer->count++] = edge;
 }
 
-void vektor_line_flatten(EdgeBuffer *buffer, VektorLine line) {
+void vektor_line_flatten(EdgeBuffer* buffer, VektorLine line) {
     vektor_edgebuffer_add_edge(buffer, (Edge){line.p1, line.p2, 0});
 }
 
-void vektor_polyline_flatten(EdgeBuffer *buffer, VektorPolyline *line) {
+void vektor_polyline_flatten(EdgeBuffer* buffer, VektorPolyline* line) {
     for (size_t i = 0; i + 1 < line->count; i++) {
         vektor_edgebuffer_add_edge(
             buffer, (Edge){line->points[i], line->points[i + 1], 0});
     }
 }
 
-void vektor_polygon_flatten(EdgeBuffer *buffer, VektorPolygon *pg) {
+void vektor_polygon_flatten(EdgeBuffer* buffer, VektorPolygon* pg) {
     size_t n = pg->count;
     if (n < 3)
         return;
@@ -42,7 +42,7 @@ inline VektorFramebuffer vektor_framebuffer_new(unsigned int W,
     return fb;
 }
 
-inline void vektor_framebuffer_putpixel(VektorFramebuffer *fb, int x, int y,
+inline void vektor_framebuffer_putpixel(VektorFramebuffer* fb, int x, int y,
                                         VektorColor color) {
     if ((unsigned)x >= fb->width || (unsigned)y >= fb->height)
         return;
@@ -54,7 +54,7 @@ inline void vektor_framebuffer_putpixel(VektorFramebuffer *fb, int x, int y,
     fb->pixels[i + 3] = color.a;
 }
 
-void draw_filled_circle(VektorFramebuffer *fb, int cx, int cy, int r,
+void draw_filled_circle(VektorFramebuffer* fb, int cx, int cy, int r,
                         VektorColor color) {
     for (int y = -r; y <= r; y++) {
         int dx = (int)sqrt(r * r - y * y);
@@ -64,7 +64,7 @@ void draw_filled_circle(VektorFramebuffer *fb, int cx, int cy, int r,
     }
 }
 
-void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b,
+void vektor_framebuffer_drawline(VektorFramebuffer* fb, V2 a, V2 b,
                                  VektorColor color, double thickness) {
     int x0 = (int)a.x;
     int y0 = (int)a.y;
@@ -94,11 +94,11 @@ void vektor_framebuffer_drawline(VektorFramebuffer *fb, V2 a, V2 b,
     }
 }
 
-void vektor_framebuffer_rasterize(VektorFramebuffer *fb,
-                                  VektorPrimitiveBuffer *prims) {
+void vektor_framebuffer_rasterize(VektorFramebuffer* fb,
+                                  VektorPrimitiveBuffer* prims) {
     EdgeBuffer edges = {0};
     for (size_t i = 0; i < prims->count; i++) {
-        VektorPrimitive *p = &prims->primitives[i];
+        VektorPrimitive* p = &prims->primitives[i];
 
         switch (p->kind) {
         case VEKTOR_LINE:

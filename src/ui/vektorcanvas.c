@@ -8,7 +8,7 @@
 #define VKTR_CANVAS_HEIGHT 400
 #define VKTR_CANVAS_SIZE (VKTR_CANVAS_WIDTH * VKTR_CANVAS_HEIGHT * 4)
 
-void vektor_canvas_init(VektorWidgetState *state, VektorCanvas *canvasOut) {
+void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut) {
     canvasOut->canvasWidget = state->workspaceCanvas;
     canvasOut->width = VKTR_CANVAS_WIDTH;
     canvasOut->height = VKTR_CANVAS_HEIGHT;
@@ -28,7 +28,7 @@ void vektor_canvas_init(VektorWidgetState *state, VektorCanvas *canvasOut) {
 }
 
 /* Generate new texture based on canvasPixels*/
-void vektor_canvas_update(VektorCanvas *canvas) {
+void vektor_canvas_update(VektorCanvas* canvas) {
     g_bytes_unref(canvas->canvasPixelBytes);
     canvas->canvasPixelBytes =
         g_bytes_new(canvas->canvasPixels, VKTR_CANVAS_SIZE);
@@ -42,7 +42,7 @@ void vektor_canvas_update(VektorCanvas *canvas) {
                               GDK_PAINTABLE(canvas->canvasTexture));
 }
 
-void vektor_canvas_fill(VektorCanvas *canvas, VektorColor color) {
+void vektor_canvas_fill(VektorCanvas* canvas, VektorColor color) {
     for (int x = 0; x < VKTR_CANVAS_WIDTH; x++) {
         for (int y = 0; y < VKTR_CANVAS_HEIGHT; y++) {
             int i = (y * VKTR_CANVAS_WIDTH + x) * 4;
@@ -54,7 +54,7 @@ void vektor_canvas_fill(VektorCanvas *canvas, VektorColor color) {
     }
 }
 
-void vektor_canvas_drawfrom(VektorFramebuffer *fb, VektorCanvas *target) {
+void vektor_canvas_drawfrom(VektorFramebuffer* fb, VektorCanvas* target) {
     for (int x = 0; x < fb->width; x++) {
         for (int y = 0; y < fb->height; y++) {
 

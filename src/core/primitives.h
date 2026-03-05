@@ -11,13 +11,13 @@ typedef struct {
 } VektorLine;
 
 typedef struct {
-    V2 *points;
+    V2* points;
     size_t count;
     size_t capacity;
 } VektorPolyline;
 
 typedef struct {
-    V2 *points;
+    V2* points;
     size_t count;
     size_t capacity;
 } VektorPolygon;
@@ -38,27 +38,27 @@ typedef struct {
     VektorPrimitiveKind kind;
     union {
         VektorLine line;
-        VektorPolyline *polyline;
-        VektorPolygon *polygon;
+        VektorPolyline* polyline;
+        VektorPolygon* polygon;
         VektorCircle circle;
     };
 } VektorPrimitive;
 
-VektorPolyline *vektor_polyline_new(void);
-void vektor_polyline_add_point(VektorPolyline *pl, V2 point);
-void vektor_polyline_free(VektorPolyline *pl);
+VektorPolyline* vektor_polyline_new(void);
+void vektor_polyline_add_point(VektorPolyline* pl, V2 point);
+void vektor_polyline_free(VektorPolyline* pl);
 
-VektorPolygon *vektor_polygon_new(void);
-void vektor_polygon_add_point(VektorPolygon *pl, V2 point);
-void vektor_polygon_free(VektorPolygon *pl);
+VektorPolygon* vektor_polygon_new(void);
+void vektor_polygon_add_point(VektorPolygon* pl, V2 point);
+void vektor_polygon_free(VektorPolygon* pl);
 
 typedef struct {
-    VektorPrimitive *primitives;
+    VektorPrimitive* primitives;
     size_t count;
     size_t capacity;
 } VektorPrimitiveBuffer;
 
-void vektor_primitivebuffer_add_primitive(VektorPrimitiveBuffer *edges,
+void vektor_primitivebuffer_add_primitive(VektorPrimitiveBuffer* edges,
                                           VektorPrimitive edge);
 
 #endif // PRIMITIVES_H_

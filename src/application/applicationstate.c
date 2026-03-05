@@ -5,24 +5,24 @@
 #include "src/ui/vektorcanvas.h"
 
 typedef struct button_tool_set_data {
-    VektorAppState *state;
+    VektorAppState* state;
     VektorAppTool tool;
 } button_tool_set_data;
 
-static void appstate_set_tool(GtkButton *button, gpointer user_data) {
-    button_tool_set_data *data = (button_tool_set_data *)user_data;
+static void appstate_set_tool(GtkButton* button, gpointer user_data) {
+    button_tool_set_data* data = (button_tool_set_data*)user_data;
     data->state->selectedTool = data->tool;
 
     // setting tool also resets selected primitive
     data->state->selectedPrimitive = NULL;
 }
 
-static void canvas_onclick(GtkGestureClick *gesture, int n_press, double x,
+static void canvas_onclick(GtkGestureClick* gesture, int n_press, double x,
                            double y, gpointer user_data) {
 
-    VektorAppState *state = user_data;
+    VektorAppState* state = user_data;
 
-    GtkWidget *widget =
+    GtkWidget* widget =
         gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(gesture));
 
     int widget_w = gtk_widget_get_width(widget);
@@ -38,7 +38,7 @@ static void canvas_onclick(GtkGestureClick *gesture, int n_press, double x,
     vektor_appstate_canvas_click(state, x * sx, y * sy);
 }
 
-void vektor_appstate_canvas_click(VektorAppState *state, double x, double y) {
+void vektor_appstate_canvas_click(VektorAppState* state, double x, double y) {
     V2 pos = (V2){x, y};
 
 begin_click_dispatch:
@@ -46,7 +46,7 @@ begin_click_dispatch:
         // create new polyline primitive if none is selected
         if (state->selectedPrimitive == NULL) {
 
-            VektorPolyline *line = vektor_polyline_new();
+            VektorPolyline* line = vektor_polyline_new();
             VektorPrimitive linePrimitive =
                 (VektorPrimitive){.kind = VEKTOR_POLYLINE, .polyline = line};
             vektor_primitivebuffer_add_primitive(state->primitiveBuffer,
@@ -72,8 +72,8 @@ begin_click_dispatch:
     vektor_canvas_update(state->canvas);
 }
 
-void vektor_appstate_new(VektorWidgetState *wstate, VektorAppState *stateOut) {
-    button_tool_set_data *data_linetool = malloc(sizeof(button_tool_set_data));
+void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
+    button_tool_set_data* data_linetool = malloc(sizeof(button_tool_set_data));
     data_linetool->state = stateOut;
     data_linetool->tool = VektorLineTool;
 
@@ -90,7 +90,7 @@ void vektor_appstate_new(VektorWidgetState *wstate, VektorAppState *stateOut) {
                      G_CALLBACK(appstate_set_tool), data_linetool);
 
     // Add click gesture to canvas
-    GtkGesture *canvasClickGesture = gtk_gesture_click_new();
+    GtkGesture* canvasClickGesture = gtk_gesture_click_new();
     g_signal_connect(G_OBJECT(canvasClickGesture), "pressed",
                      G_CALLBACK(canvas_onclick), stateOut);
     gtk_widget_add_controller(GTK_WIDGET(wstate->workspaceCanvas),

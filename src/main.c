@@ -10,17 +10,16 @@
 #include "./ui/vektorcanvas.h"
 #include "./util/color.h"
 
-static void on_map(GtkWidget *window, gpointer user_data) {
-    vektor_uictrl_map((VektorWidgetState *)user_data);
+static void on_map(GtkWidget* window, gpointer user_data) {
+    vektor_uictrl_map((VektorWidgetState*)user_data);
 }
 
-static void activate(GtkApplication *app, gpointer user_data) {
+static void activate(GtkApplication* app, gpointer user_data) {
 
-    VektorWidgetState *widget_state =
-        (VektorWidgetState *)malloc(sizeof(VektorWidgetState));
+    VektorWidgetState* widget_state =
+        (VektorWidgetState*)malloc(sizeof(VektorWidgetState));
     vektor_uictrl_init(app, widget_state);
-    VektorAppState *app_state =
-        (VektorAppState *)malloc(sizeof(VektorAppState));
+    VektorAppState* app_state = (VektorAppState*)malloc(sizeof(VektorAppState));
     vektor_appstate_new(widget_state, app_state);
 
     g_signal_connect(widget_state->window, "map", G_CALLBACK(on_map),
@@ -29,9 +28,9 @@ static void activate(GtkApplication *app, gpointer user_data) {
     gtk_window_present(widget_state->window);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
 
-    GtkApplication *app;
+    GtkApplication* app;
     int status;
 
     app = gtk_application_new("dev.frox.vektor", G_APPLICATION_DEFAULT_FLAGS);

@@ -2,4 +2,7 @@ BasedOnStyle: LLVM
 ColumnLimit: 80
 BreakBeforeBraces: Attach
 IndentWidth: 4
+TabWidth: 4
 ContinuationIndentWidth: 4
+DerivePointerAlignment: false
+PointerAlignment: Left
