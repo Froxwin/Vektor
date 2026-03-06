@@ -43,4 +43,15 @@ void vektor_framebuffer_drawline(VektorFramebuffer* fb, V2 a, V2 b,
 void vektor_framebuffer_rasterize(VektorFramebuffer* fb,
                                   VektorPrimitiveBuffer* primitives);
 
+typedef struct {
+    V2* vertices;
+    size_t count;
+    size_t capacity;
+} VertexBuffer;
+
+void vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2);
+void vektor_edge_to_triangles(VertexBuffer* vb, Edge e, float thickness);
+VertexBuffer vektor_edges_to_triangles(EdgeBuffer* edges, float thickness);
+VertexBuffer vektor_rasterize(VektorPrimitiveBuffer* prims);
+
 #endif // RASTER_H_

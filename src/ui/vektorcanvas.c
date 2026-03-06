@@ -2,30 +2,34 @@
 #include "gtk/gtk.h"
 
 #include "../core/raster.h"
+#include "src/core/primitives.h"
 #include "uicontroller.h"
 #include "vektorcanvas.h"
+#include <epoxy/gl_generated.h>
 
 #define VKTR_CANVAS_WIDTH 400
 #define VKTR_CANVAS_HEIGHT 400
 #define VKTR_CANVAS_SIZE (VKTR_CANVAS_WIDTH * VKTR_CANVAS_HEIGHT * 4)
 
+char* read_file(const char* path) {
+    FILE* f = fopen(path, "rb");
+    if (!f)
+        return NULL;
+
+    fseek(f, 0, SEEK_END);
+    long size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    char* buffer = malloc(size + 1);
+    fread(buffer, 1, size, f);
+    buffer[size] = '\0'; // null-terminate
+    fclose(f);
+    return buffer;
+}
+
 static GLuint shader_program;
 static GLuint vao;
-
-static const char* vertex_shader_src =
-    "#version 300 es\n" // <- ES version
-    "layout(location = 0) in vec2 aPos;\n"
-    "void main() {\n"
-    "    gl_Position = vec4(aPos, 0.0, 1.0);\n"
-    "}\n";
-
-static const char* fragment_shader_src =
-    "#version 300 es\n"          // <- ES version
-    "precision mediump float;\n" // required in ES for fragment color
-    "out vec4 FragColor;\n"
-    "void main() {\n"
-    "    FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
-    "}\n";
+VertexBuffer vb;
 
 static GLuint compile_shader(GLenum type, const char* src) {
     GLuint shader = glCreateShader(type);
@@ -43,8 +47,17 @@ static GLuint compile_shader(GLenum type, const char* src) {
 }
 
 static void init_shader(void) {
-    GLuint vertex = compile_shader(GL_VERTEX_SHADER, vertex_shader_src);
-    GLuint fragment = compile_shader(GL_FRAGMENT_SHADER, fragment_shader_src);
+    char* vert_src = read_file("./shaders/triangle.vert.glsl");
+    char* frag_src = read_file("./shaders/triangle.frag.glsl");
+
+    if (!vert_src || !frag_src)
+        g_error("Failed to load shader files");
+
+    GLuint vertex = compile_shader(GL_VERTEX_SHADER, vert_src);
+    GLuint fragment = compile_shader(GL_FRAGMENT_SHADER, frag_src);
+
+    printf("%s\n", vert_src);
+    printf("%s\n", frag_src);
 
     shader_program = glCreateProgram();
     glAttachShader(shader_program, vertex);
@@ -64,47 +77,103 @@ static void init_shader(void) {
 }
 
 static void init_geometry(void) {
-    // Vertices for a rectangle in NDC coordinates
-    float vertices[] = {
-        -0.5f, -0.5f, // bottom-left
-        0.5f,  -0.5f, // bottom-right
-        0.5f,  0.5f,  // top-right
-        -0.5f, 0.5f   // top-left
-    };
-    unsigned int indices[] = {0, 1, 2, 2, 3, 0};
+    // V2 vs[3] = {(V2){-0.5, -0.5}, (V2){0.5, -0.5}, (V2){0.0, 0.5}};
+    // VertexBuffer vb =
+    //     (VertexBuffer){.count = 3, .capacity = 3, .vertices = &vs[0]};
 
-    GLuint vbo, ebo;
+    VektorPolygon triangle = *vektor_polygon_new();
+    vektor_polygon_add_point(&triangle, (V2){-0.5f, -0.5f}); // bottom-left
+    vektor_polygon_add_point(&triangle, (V2){0.5f, -0.5f});  // bottom-right
+    vektor_polygon_add_point(&triangle, (V2){0.0f, 0.5f});   // top-center
+
+    VektorPrimitiveBuffer prims = {0};
+    vektor_primitivebuffer_add_primitive(
+        &prims,
+        (VektorPrimitive){.kind = VEKTOR_POLYGON, .polygon = &triangle});
+
+    vb = vektor_rasterize(&prims);
+
+    for (size_t i = 0; i < vb.count; i++) {
+        printf("Vertex %zu: x=%f, y=%f\n", i, vb.vertices[i].x,
+               vb.vertices[i].y);
+    }
+
+    GLuint vbo;
+
+    // 1. Create VAO
     glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    glGenBuffers(1, &ebo);
-
     glBindVertexArray(vao);
 
+    // 2. Create VBO
+    glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
+    // 3. Upload your vertices (V2 = 2 floats per vertex)
+    glBufferData(GL_ARRAY_BUFFER, vb.count * sizeof(V2), vb.vertices,
                  GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float),
-                          (void*)0);
+    // 4. Tell GL about the vertex layout
     glEnableVertexAttribArray(0);
-
+    glVertexAttribPointer(0,          // layout location 0 in shader
+                          2,          // 2 components per vertex (x, y)
+                          GL_FLOAT,   // type
+                          GL_FALSE,   // do not normalize
+                          sizeof(V2), // stride (size of one vertex)
+                          (void*)0    // offset
+    );
     glBindVertexArray(0);
 }
 
 static gboolean render(GtkGLArea* area, GdkGLContext* context) {
+    glUseProgram(shader_program);
+
+    GLuint uProjectionLoc = glGetUniformLocation(shader_program, "uProjection");
+    GLuint uColorLoc = glGetUniformLocation(shader_program, "uColor");
+    float projectionMatrix[16] = {1, 0, 0, 0, 0, 1, 0, 0,
+                                  0, 0, 1, 0, 0, 0, 0, 1};
+    glUniformMatrix4fv(uProjectionLoc, 1, GL_FALSE, projectionMatrix);
+    glUniform4f(uColorLoc, 1.0, 0.0, 1.0, 1.0); // magenta
+
+    glBindVertexArray(vao);
+    glDisable(GL_CULL_FACE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glUseProgram(shader_program);
-    glBindVertexArray(vao);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, vb.count);
+    GLenum err = glGetError();
+    printf("OpenGL error: %x\n", err);
+    // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
     glUseProgram(0);
 
     return TRUE;
+}
+
+static void dump_gl_info(GtkGLArea* area) {
+    gtk_gl_area_make_current(area);
+
+    if (gtk_gl_area_get_error(area)) {
+        g_warning("Failed to make GL context current");
+        return;
+    }
+
+    const GLubyte* renderer = glGetString(GL_RENDERER);
+    const GLubyte* vendor = glGetString(GL_VENDOR);
+    const GLubyte* version = glGetString(GL_VERSION);
+    const GLubyte* shading = glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+    g_debug("GL Vendor    : %s", vendor);
+    g_debug("GL Renderer  : %s", renderer);
+    g_debug("GL Version   : %s", version);
+    g_debug("GLSL Version : %s", shading);
+
+    GLint n;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+    g_debug("Supported extensions (%d):", n);
+    for (GLint i = 0; i < n; ++i) {
+        g_debug("  %s", glGetStringi(GL_EXTENSIONS, i));
+    }
 }
 
 static void realize(GtkGLArea* area, gpointer user_data) {
@@ -113,6 +182,8 @@ static void realize(GtkGLArea* area, gpointer user_data) {
     if (gtk_gl_area_get_error(area) != NULL)
         return; // context creation failed
 
+    glEnable(GL_DEBUG_OUTPUT);
+    dump_gl_info(area);
     init_shader();
     init_geometry();
 }

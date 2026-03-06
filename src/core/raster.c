@@ -1,7 +1,7 @@
 #include "raster.h"
+#include "epoxy/gl.h"
 #include "primitives.h"
 #include "stddef.h"
-#include <stddef.h>
 
 void vektor_edgebuffer_add_edge(EdgeBuffer* buffer, Edge edge) {
     if (buffer->count >= buffer->capacity) {
@@ -114,7 +114,7 @@ void vektor_framebuffer_rasterize(VektorFramebuffer* fb,
             break;
 
         default:
-            // TODO fill in all primitives
+            // TODO: fill in all primitives
             break;
         }
     }
@@ -123,4 +123,69 @@ void vektor_framebuffer_rasterize(VektorFramebuffer* fb,
         vektor_framebuffer_drawline(fb, edges.edges[i].p1, edges.edges[i].p2,
                                     vektor_color_solid(255, 0, 255), 4);
     }
+}
+
+VertexBuffer vektor_rasterize(VektorPrimitiveBuffer* prims) {
+    EdgeBuffer edges = {0};
+    for (size_t i = 0; i < prims->count; i++) {
+        VektorPrimitive* p = &prims->primitives[i];
+
+        switch (p->kind) {
+        case VEKTOR_LINE:
+            vektor_line_flatten(&edges, p->line);
+            break;
+
+        case VEKTOR_POLYLINE:
+            vektor_polyline_flatten(&edges, p->polyline);
+            break;
+
+        case VEKTOR_POLYGON:
+            vektor_polygon_flatten(&edges, p->polygon);
+            break;
+
+        default:
+            // TODO: fill in all primitives
+            break;
+        }
+    }
+
+    VertexBuffer vb = vektor_edges_to_triangles(&edges, 0.1f);
+    return vb;
+}
+
+void vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2) {
+    if (vb->count + 3 >= vb->capacity) {
+        vb->capacity = vb->capacity ? vb->capacity * 2 : 8;
+        vb->vertices = realloc(vb->vertices, sizeof(V2) * vb->capacity);
+    }
+    vb->vertices[vb->count++] = v0;
+    vb->vertices[vb->count++] = v1;
+    vb->vertices[vb->count++] = v2;
+}
+
+void vektor_edge_to_triangles(VertexBuffer* vb, Edge e, float thickness) {
+    float dx = e.p2.x - e.p1.x;
+    float dy = e.p2.y - e.p1.y;
+    float len = sqrtf(dx * dx + dy * dy);
+    if (len == 0)
+        return;
+
+    float px = -dy / len * (thickness / 2);
+    float py = dx / len * (thickness / 2);
+
+    V2 v0 = {e.p1.x + px, e.p1.y + py};
+    V2 v1 = {e.p1.x - px, e.p1.y - py};
+    V2 v2 = {e.p2.x + px, e.p2.y + py};
+    V2 v3 = {e.p2.x - px, e.p2.y - py};
+
+    vb_add_triangle(vb, v0, v1, v2);
+    vb_add_triangle(vb, v2, v1, v3);
+}
+
+VertexBuffer vektor_edges_to_triangles(EdgeBuffer* edges, float thickness) {
+    VertexBuffer vb = {0};
+    for (size_t i = 0; i < edges->count; i++) {
+        vektor_edge_to_triangles(&vb, edges->edges[i], thickness);
+    }
+    return vb;
 }
