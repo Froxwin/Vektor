@@ -2,6 +2,7 @@
 #define VKTR_UICTRL_H
 
 #include "gtk/gtk.h"
+#include "gtk/gtkrevealer.h"
 
 /*
 Global application widget state, holding references to
@@ -12,7 +13,11 @@ typedef struct VektorWidgetState {
     GtkPaned* workspacePaned;
     GtkGLArea* workspaceCanvas;
 
+    GtkButton* workspaceButtonMasterShapes;
+    GtkRevealer* workspaceRevealerShapes;
     GtkButton* workspaceButtonLinetool;
+    GtkButton* workspaceButtonRecttool;
+    GtkButton* workspaceButtonCircletool;
 
     // GtkWidget* Workspace
 } VektorWidgetState;

@@ -1,10 +1,12 @@
 #include "./applicationstate.h"
 #include "glib.h"
+#include "gtk/gtkrevealer.h"
 #include "src/core/primitives.h"
 #include "src/core/raster.h"
 #include "src/ui/vektorcanvas.h"
 
 typedef struct button_tool_set_data {
+    GtkRevealer* revealer;
     VektorAppState* state;
     VektorAppTool tool;
 } button_tool_set_data;
@@ -13,8 +15,17 @@ static void appstate_set_tool(GtkButton* button, gpointer user_data) {
     button_tool_set_data* data = (button_tool_set_data*)user_data;
     data->state->selectedTool = data->tool;
 
+    // setting tool makes the sub-tools menu to close
+    gtk_revealer_set_reveal_child(data->revealer, FALSE);
+
     // setting tool also resets selected primitive
     data->state->selectedPrimitive = NULL;
+}
+
+static void appstate_reveal_subtools(GtkButton* button, gpointer user_data) {
+    GtkRevealer* revealer = (GtkRevealer*)user_data;
+    gboolean visible = gtk_revealer_get_reveal_child(revealer);
+    gtk_revealer_set_reveal_child(revealer, !visible);
 }
 
 static void canvas_onclick(GtkGestureClick* gesture, int n_press, double x,
@@ -76,6 +87,7 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     button_tool_set_data* data_linetool = malloc(sizeof(button_tool_set_data));
     data_linetool->state = stateOut;
     data_linetool->tool = VektorLineTool;
+    data_linetool->revealer = wstate->workspaceRevealerShapes;
 
     // populate appstate
     stateOut->primitiveBuffer = malloc(sizeof(VektorPrimitiveBuffer));
@@ -88,6 +100,14 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     // link all the buttons
     g_signal_connect(G_OBJECT(wstate->workspaceButtonLinetool), "clicked",
                      G_CALLBACK(appstate_set_tool), data_linetool);
+    g_signal_connect(G_OBJECT(wstate->workspaceButtonRecttool), "clicked",
+                     G_CALLBACK(appstate_set_tool), data_linetool);
+    g_signal_connect(G_OBJECT(wstate->workspaceButtonCircletool), "clicked",
+                     G_CALLBACK(appstate_set_tool), data_linetool);
+
+    // hook subtool revealers to their master buttons
+    g_signal_connect(G_OBJECT(wstate->workspaceButtonMasterShapes), "clicked",
+                    G_CALLBACK(appstate_reveal_subtools), wstate->workspaceRevealerShapes);
 
     // Add click gesture to canvas
     GtkGesture* canvasClickGesture = gtk_gesture_click_new();

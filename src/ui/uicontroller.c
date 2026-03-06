@@ -3,6 +3,7 @@
 #include "glib-object.h"
 #include "gtk/gtk.h"
 #include "gtk/gtkcssprovider.h"
+#include "gtk/gtkrevealer.h"
 
 void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
     GtkBuilder* builder = gtk_builder_new();
@@ -20,6 +21,13 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
         gdk_display_get_default(), GTK_STYLE_PROVIDER(provider),
         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
+    // Load theme
+    gtk_icon_theme_add_search_path(
+        gtk_icon_theme_get_for_display(
+            gdk_display_get_default()
+        ), "icons"
+    );
+
     // populate state
     stateOut->window =
         GTK_WINDOW(gtk_builder_get_object(builder, "main_window"));
@@ -27,8 +35,18 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
         GTK_PANED(gtk_builder_get_object(builder, "workspace_paned"));
     stateOut->workspaceCanvas =
         GTK_GL_AREA(gtk_builder_get_object(builder, "workspace"));
+
+    stateOut->workspaceButtonMasterShapes =
+        GTK_BUTTON(gtk_builder_get_object(builder, "button_shapetools"));
+    stateOut->workspaceRevealerShapes =
+        GTK_REVEALER(gtk_builder_get_object(builder, "shape_revealer"));
     stateOut->workspaceButtonLinetool =
         GTK_BUTTON(gtk_builder_get_object(builder, "button_linetool"));
+    stateOut->workspaceButtonRecttool =
+        GTK_BUTTON(gtk_builder_get_object(builder, "button_rectangletool"));
+    stateOut->workspaceButtonCircletool =
+        GTK_BUTTON(gtk_builder_get_object(builder, "button_circletool"));
+    
 
     // Set window properties
     gtk_window_set_application(stateOut->window, app);
@@ -44,4 +62,6 @@ void vektor_uictrl_map(VektorWidgetState* state) {
     int window_width = gtk_widget_get_width(GTK_WIDGET(state->window));
     g_print("%i", window_width);
     gtk_paned_set_position(state->workspacePaned, 800 * .7);
+
+    
 }
