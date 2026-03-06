@@ -73,7 +73,7 @@
                                                     <!--Shape tool-->
                                                     <child>
                                                         <object class="GtkButton" id="button_shapetools">
-                                                            <property name="icon-name">vektor-tool-symbolic</property>
+                                                            <property name="icon-name">tool-line-symbolic</property>
                                                         </object>
                                                     </child>
                                                     
@@ -90,21 +90,21 @@
                                                                     <!--Line tool-->
                                                                     <child>
                                                                         <object class="GtkButton" id="button_linetool">
-                                                                            <property name="icon-name">vektor-line-symbolic</property>
+                                                                            <property name="icon-name">tool-line-symbolic</property>
                                                                         </object>
                                                                     </child>
 
                                                                     <!--Rectangle tool-->
                                                                     <child>
                                                                         <object class="GtkButton" id="button_rectangletool">
-                                                                            <property name="icon-name">vektor-rect-symbolic</property>
+                                                                            <property name="icon-name">tool-rectangle-symbolic</property>
                                                                         </object>
                                                                     </child>
 
                                                                     <!--Circle tool-->
                                                                     <child>
                                                                         <object class="GtkButton" id="button_circletool">
-                                                                            <property name="icon-name">vektor-circle-symbolic</property>
+                                                                            <property name="icon-name">tool-circle-symbolic</property>
                                                                         </object>
                                                                     </child>
 
