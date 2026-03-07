@@ -29,6 +29,7 @@ char* read_file(const char* path) {
 
 static GLuint shader_program;
 static GLuint vao;
+// VektorPrimitiveBuffer prims = {0};
 VertexBuffer vb;
 
 static GLuint compile_shader(GLenum type, const char* src) {
@@ -81,50 +82,45 @@ static void init_geometry(void) {
     // VertexBuffer vb =
     //     (VertexBuffer){.count = 3, .capacity = 3, .vertices = &vs[0]};
 
-    VektorPolygon triangle = *vektor_polygon_new();
-    vektor_polygon_add_point(&triangle, (V2){-0.5f, -0.5f}); // bottom-left
-    vektor_polygon_add_point(&triangle, (V2){0.5f, -0.5f});  // bottom-right
-    vektor_polygon_add_point(&triangle, (V2){0.0f, 0.5f});   // top-center
+    // VektorPolygon* triangle = vektor_polygon_new();
+    // vektor_polygon_add_point(triangle, (V2){-0.5f, -0.5f}); // bottom-left
+    // vektor_polygon_add_point(triangle, (V2){0.5f, -0.5f});  // bottom-right
+    // vektor_polygon_add_point(triangle, (V2){0.0f, 0.5f});   // top-center
 
-    VektorPrimitiveBuffer prims = {0};
-    vektor_primitivebuffer_add_primitive(
-        &prims,
-        (VektorPrimitive){.kind = VEKTOR_POLYGON, .polygon = &triangle});
+    // vektor_primitivebuffer_add_primitive(
+    //     &prims, (VektorPrimitive){.kind = VEKTOR_POLYGON, .polygon =
+    //     triangle});
 
-    vb = vektor_rasterize(&prims);
+    // for (size_t i = 0; i < vb.count; i++) {
+    //     printf("Vertex %zu: x=%f, y=%f\n", i, vb.vertices[i].x,
+    //            vb.vertices[i].y);
+    // }
+
+    GLuint vbo;
+
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(V2), (void*)0);
+    glBindVertexArray(0);
+}
+
+static gboolean render(GtkGLArea* area, GdkGLContext* context,
+                       VektorPrimitiveBuffer* prims) {
+    vb = vektor_rasterize(prims);
 
     for (size_t i = 0; i < vb.count; i++) {
         printf("Vertex %zu: x=%f, y=%f\n", i, vb.vertices[i].x,
                vb.vertices[i].y);
     }
 
-    GLuint vbo;
-
-    // 1. Create VAO
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    // 2. Create VBO
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-    // 3. Upload your vertices (V2 = 2 floats per vertex)
     glBufferData(GL_ARRAY_BUFFER, vb.count * sizeof(V2), vb.vertices,
                  GL_STATIC_DRAW);
 
-    // 4. Tell GL about the vertex layout
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0,          // layout location 0 in shader
-                          2,          // 2 components per vertex (x, y)
-                          GL_FLOAT,   // type
-                          GL_FALSE,   // do not normalize
-                          sizeof(V2), // stride (size of one vertex)
-                          (void*)0    // offset
-    );
-    glBindVertexArray(0);
-}
-
-static gboolean render(GtkGLArea* area, GdkGLContext* context) {
     glUseProgram(shader_program);
 
     GLuint uProjectionLoc = glGetUniformLocation(shader_program, "uProjection");
@@ -188,7 +184,8 @@ static void realize(GtkGLArea* area, gpointer user_data) {
     init_geometry();
 }
 
-void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut) {
+void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut,
+                        VektorPrimitiveBuffer* prims) {
     canvasOut->canvasWidget = state->workspaceCanvas;
     canvasOut->width = VKTR_CANVAS_WIDTH;
     canvasOut->height = VKTR_CANVAS_HEIGHT;
@@ -203,7 +200,7 @@ void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut) {
     g_signal_connect(canvasOut->canvasWidget, "realize", G_CALLBACK(realize),
                      NULL);
     g_signal_connect(canvasOut->canvasWidget, "render", G_CALLBACK(render),
-                     NULL);
+                     prims);
     // gtk_picture_set_paintable(canvasOut->canvasWidget,
     //                           GDK_PAINTABLE(canvasOut->canvasTexture));
     // gtk_picture_set_content_fit(GTK_PICTURE(canvasOut->canvasWidget),

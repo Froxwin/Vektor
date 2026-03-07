@@ -42,11 +42,13 @@ static void canvas_onclick(GtkGestureClick* gesture, int n_press, double x,
     int canvas_w = state->canvas->width;
     int canvas_h = state->canvas->height;
 
-    double sx = canvas_w / (double)widget_w;
-    double sy = canvas_h / (double)widget_h;
+    V2 normalized_coords =
+        (V2){(2 * (x / widget_w)) - 1, 1 - (2 * (y / widget_h))};
 
-    g_debug("<%f , %f>", x * sx, y * sy);
-    vektor_appstate_canvas_click(state, x * sx, y * sy);
+    g_debug("<%f , %f>", normalized_coords.x, normalized_coords.y);
+    vektor_appstate_canvas_click(state, normalized_coords.x,
+                                 normalized_coords.y);
+    gtk_gl_area_queue_render(GTK_GL_AREA(widget));
 }
 
 void vektor_appstate_canvas_click(VektorAppState* state, double x, double y) {
@@ -95,7 +97,7 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     stateOut->frameBuffer = malloc(sizeof(VektorFramebuffer));
     *stateOut->frameBuffer = vektor_framebuffer_new(400, 400);
     stateOut->canvas = malloc(sizeof(VektorCanvas));
-    vektor_canvas_init(wstate, stateOut->canvas);
+    vektor_canvas_init(wstate, stateOut->canvas, stateOut->primitiveBuffer);
 
     // link all the buttons
     g_signal_connect(G_OBJECT(wstate->workspaceButtonLinetool), "clicked",
@@ -107,7 +109,8 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
 
     // hook subtool revealers to their master buttons
     g_signal_connect(G_OBJECT(wstate->workspaceButtonMasterShapes), "clicked",
-                    G_CALLBACK(appstate_reveal_subtools), wstate->workspaceRevealerShapes);
+                     G_CALLBACK(appstate_reveal_subtools),
+                     wstate->workspaceRevealerShapes);
 
     // Add click gesture to canvas
     GtkGesture* canvasClickGesture = gtk_gesture_click_new();
