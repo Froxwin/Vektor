@@ -10,12 +10,10 @@ typedef enum VektorAppTool { VektorLineTool } VektorAppTool;
 
 typedef struct VektorAppState {
     VektorAppTool selectedTool;
-    VektorPrimitive* selectedPrimitive;
+    VektorShape* selectedShape;
 
     // Logic space
-    VektorPrimitiveBuffer* primitiveBuffer;
-    // Pixel space
-    VektorFramebuffer* frameBuffer;
+    VektorShapeBuffer* shapeBuffer;
     // View space
     VektorCanvas* canvas;
 

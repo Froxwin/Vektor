@@ -46,12 +46,12 @@ void vektor_polygon_free(VektorPolygon* pg) {
     free(pg);
 }
 
-void vektor_primitivebuffer_add_primitive(VektorPrimitiveBuffer* buffer,
-                                          VektorPrimitive prim) {
+void vektor_shapebuffer_add_shape(VektorShapeBuffer* buffer,
+                                  VektorShape shape) {
     if (buffer->count >= buffer->capacity) {
         buffer->capacity = buffer->capacity ? buffer->capacity * 2 : 4;
-        buffer->primitives = realloc(
-            buffer->primitives, sizeof(VektorPrimitive) * buffer->capacity);
+        buffer->shapes =
+            realloc(buffer->shapes, sizeof(VektorShape) * buffer->capacity);
     }
-    buffer->primitives[buffer->count++] = prim;
+    buffer->shapes[buffer->count++] = shape;
 }

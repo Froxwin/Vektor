@@ -1,10 +1,10 @@
 #version 320 es
 precision mediump float;
 
-uniform vec4 uColor; // RGBA
-
+in vec4 vColor;
 out vec4 FragColor;
 
-void main() {
-    FragColor = uColor;
+void main()
+{
+    FragColor = vColor;
 }

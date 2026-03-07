@@ -29,7 +29,6 @@ char* read_file(const char* path) {
 
 static GLuint shader_program;
 static GLuint vao;
-// VektorPrimitiveBuffer prims = {0};
 VertexBuffer vb;
 
 static GLuint compile_shader(GLenum type, const char* src) {
@@ -78,24 +77,6 @@ static void init_shader(void) {
 }
 
 static void init_geometry(void) {
-    // V2 vs[3] = {(V2){-0.5, -0.5}, (V2){0.5, -0.5}, (V2){0.0, 0.5}};
-    // VertexBuffer vb =
-    //     (VertexBuffer){.count = 3, .capacity = 3, .vertices = &vs[0]};
-
-    // VektorPolygon* triangle = vektor_polygon_new();
-    // vektor_polygon_add_point(triangle, (V2){-0.5f, -0.5f}); // bottom-left
-    // vektor_polygon_add_point(triangle, (V2){0.5f, -0.5f});  // bottom-right
-    // vektor_polygon_add_point(triangle, (V2){0.0f, 0.5f});   // top-center
-
-    // vektor_primitivebuffer_add_primitive(
-    //     &prims, (VektorPrimitive){.kind = VEKTOR_POLYGON, .polygon =
-    //     triangle});
-
-    // for (size_t i = 0; i < vb.count; i++) {
-    //     printf("Vertex %zu: x=%f, y=%f\n", i, vb.vertices[i].x,
-    //            vb.vertices[i].y);
-    // }
-
     GLuint vbo;
 
     glGenVertexArrays(1, &vao);
@@ -105,30 +86,33 @@ static void init_geometry(void) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(V2), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                          (void*)offsetof(Vertex, coords));
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex),
+                          (void*)offsetof(Vertex, color));
+
     glBindVertexArray(0);
 }
-
 static gboolean render(GtkGLArea* area, GdkGLContext* context,
-                       VektorPrimitiveBuffer* prims) {
-    vb = vektor_rasterize(prims);
+                       VektorShapeBuffer* prims) {
+    vektor_rasterize(&vb, prims);
 
     for (size_t i = 0; i < vb.count; i++) {
-        printf("Vertex %zu: x=%f, y=%f\n", i, vb.vertices[i].x,
-               vb.vertices[i].y);
+        printf("Vertex %zu: x=%f, y=%f\n", i, vb.vertices[i].coords.x,
+               vb.vertices[i].coords.y);
     }
 
-    glBufferData(GL_ARRAY_BUFFER, vb.count * sizeof(V2), vb.vertices,
+    glBufferData(GL_ARRAY_BUFFER, vb.count * sizeof(Vertex), vb.vertices,
                  GL_STATIC_DRAW);
 
     glUseProgram(shader_program);
 
     GLuint uProjectionLoc = glGetUniformLocation(shader_program, "uProjection");
-    GLuint uColorLoc = glGetUniformLocation(shader_program, "uColor");
     float projectionMatrix[16] = {1, 0, 0, 0, 0, 1, 0, 0,
                                   0, 0, 1, 0, 0, 0, 0, 1};
     glUniformMatrix4fv(uProjectionLoc, 1, GL_FALSE, projectionMatrix);
-    glUniform4f(uColorLoc, 1.0, 0.0, 1.0, 1.0); // magenta
 
     glBindVertexArray(vao);
     glDisable(GL_CULL_FACE);
@@ -176,7 +160,7 @@ static void realize(GtkGLArea* area, gpointer user_data) {
     gtk_gl_area_make_current(area);
 
     if (gtk_gl_area_get_error(area) != NULL)
-        return; // context creation failed
+        return;
 
     glEnable(GL_DEBUG_OUTPUT);
     dump_gl_info(area);
@@ -185,7 +169,7 @@ static void realize(GtkGLArea* area, gpointer user_data) {
 }
 
 void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut,
-                        VektorPrimitiveBuffer* prims) {
+                        VektorShapeBuffer* prims) {
     canvasOut->canvasWidget = state->workspaceCanvas;
     canvasOut->width = VKTR_CANVAS_WIDTH;
     canvasOut->height = VKTR_CANVAS_HEIGHT;
@@ -201,49 +185,4 @@ void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut,
                      NULL);
     g_signal_connect(canvasOut->canvasWidget, "render", G_CALLBACK(render),
                      prims);
-    // gtk_picture_set_paintable(canvasOut->canvasWidget,
-    //                           GDK_PAINTABLE(canvasOut->canvasTexture));
-    // gtk_picture_set_content_fit(GTK_PICTURE(canvasOut->canvasWidget),
-    //                             GTK_CONTENT_FIT_CONTAIN);
-    // g_object_unref(bytes);
-}
-
-/* Generate new texture based on canvasPixels*/
-void vektor_canvas_update(VektorCanvas* canvas) {
-    g_bytes_unref(canvas->canvasPixelBytes);
-    canvas->canvasPixelBytes =
-        g_bytes_new(canvas->canvasPixels, VKTR_CANVAS_SIZE);
-
-    g_object_unref(canvas->canvasTexture);
-    canvas->canvasTexture = gdk_memory_texture_new(
-        canvas->width, canvas->height, GDK_MEMORY_R8G8B8A8,
-        canvas->canvasPixelBytes, canvas->width * 4);
-
-    // gtk_picture_set_paintable(canvas->canvasWidget,
-    //                           GDK_PAINTABLE(canvas->canvasTexture));
-}
-
-void vektor_canvas_fill(VektorCanvas* canvas, VektorColor color) {
-    for (int x = 0; x < VKTR_CANVAS_WIDTH; x++) {
-        for (int y = 0; y < VKTR_CANVAS_HEIGHT; y++) {
-            int i = (y * VKTR_CANVAS_WIDTH + x) * 4;
-            canvas->canvasPixels[i + 0] = color.r;
-            canvas->canvasPixels[i + 1] = color.g;
-            canvas->canvasPixels[i + 2] = color.b;
-            canvas->canvasPixels[i + 3] = color.a;
-        }
-    }
-}
-
-void vektor_canvas_drawfrom(VektorFramebuffer* fb, VektorCanvas* target) {
-    for (int x = 0; x < fb->width; x++) {
-        for (int y = 0; y < fb->height; y++) {
-
-            int i = (y * fb->width + x) * 4;
-            target->canvasPixels[i + 0] = (guchar)fb->pixels[i + 0];
-            target->canvasPixels[i + 1] = (guchar)fb->pixels[i + 1];
-            target->canvasPixels[i + 2] = (guchar)fb->pixels[i + 2];
-            target->canvasPixels[i + 3] = (guchar)fb->pixels[i + 3];
-        }
-    }
 }

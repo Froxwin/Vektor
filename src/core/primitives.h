@@ -1,14 +1,10 @@
 #ifndef PRIMITIVES_H_
 #define PRIMITIVES_H_
 
+#include "src/util/color.h"
 #include "stddef.h"
 #include "stdlib.h"
 #include "vector.h"
-
-typedef struct {
-    V2 p1;
-    V2 p2;
-} VektorLine;
 
 typedef struct {
     V2* points;
@@ -28,7 +24,6 @@ typedef struct {
 } VektorCircle;
 
 typedef enum {
-    VEKTOR_LINE,
     VEKTOR_POLYLINE,
     VEKTOR_POLYGON,
     VEKTOR_CIRCLE
@@ -37,7 +32,6 @@ typedef enum {
 typedef struct {
     VektorPrimitiveKind kind;
     union {
-        VektorLine line;
         VektorPolyline* polyline;
         VektorPolygon* polygon;
         VektorCircle circle;
@@ -53,12 +47,22 @@ void vektor_polygon_add_point(VektorPolygon* pl, V2 point);
 void vektor_polygon_free(VektorPolygon* pl);
 
 typedef struct {
-    VektorPrimitive* primitives;
+    VektorColor stroke_color;
+    float stroke_width;
+} VektorStyle;
+
+typedef struct {
+    VektorStyle style;
+    int z_index;
+    VektorPrimitive primitive;
+} VektorShape;
+
+typedef struct {
+    VektorShape* shapes;
     size_t count;
     size_t capacity;
-} VektorPrimitiveBuffer;
+} VektorShapeBuffer;
 
-void vektor_primitivebuffer_add_primitive(VektorPrimitiveBuffer* edges,
-                                          VektorPrimitive edge);
+void vektor_shapebuffer_add_shape(VektorShapeBuffer* buffer, VektorShape shape);
 
 #endif // PRIMITIVES_H_
