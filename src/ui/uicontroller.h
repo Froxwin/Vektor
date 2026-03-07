@@ -3,6 +3,7 @@
 
 #include "gtk/gtk.h"
 #include "gtk/gtkrevealer.h"
+#include "src/ui/widgets/colorwheel.h"
 
 /*
 Global application widget state, holding references to
@@ -18,6 +19,8 @@ typedef struct VektorWidgetState {
     GtkButton* workspaceButtonLinetool;
     GtkButton* workspaceButtonRecttool;
     GtkButton* workspaceButtonCircletool;
+
+    VektorColorWheel* workspaceColorPicker;
 
     // GtkWidget* Workspace
 } VektorWidgetState;

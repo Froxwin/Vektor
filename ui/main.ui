@@ -133,8 +133,36 @@
 
                         <!--Sidepanel (layers & modifiers)-->
                         <child>
-                            <object class="GtkFrame" id="sidepanel">
-                                <property name="label">Sidepanel</property>
+                            <object class="GtkPaned" id="sidepanel">
+                                <property name="orientation">vertical</property>
+                                <property name="wide-handle">true</property>
+                                <property name="hexpand">true</property>
+
+                                <child>
+                                    <object class="GtkBox">
+                                        <property name="hexpand">true</property>
+                                        <property name="vexpand">true</property>
+                                        <property name="margin-start">6</property>
+                                        <property name="margin-end">6</property>
+                                        <property name="margin-top">6</property>
+                                        <property name="margin-bottom">6</property>
+
+                                        <child>
+                                            <object class="VektorColorWheel" id="color_picker">
+                                                <property name="hexpand">true</property>
+                                                <property name="vexpand">true</property>
+                                            </object>
+                                        </child>
+
+                                    </object>
+                                </child>
+
+                                <child>
+                                    <object class="GtkFrame">
+                                        <property name="label">Modifiers</property>
+                                    </object>
+                                </child>
+
                             </object>
                         </child>
 

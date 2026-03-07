@@ -4,8 +4,11 @@
 #include "gtk/gtk.h"
 #include "gtk/gtkcssprovider.h"
 #include "gtk/gtkrevealer.h"
+#include "src/ui/widgets/colorwheel.h"
 
 void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
+    g_type_ensure(VEKTOR_TYPE_COLOR_WHEEL);
+
     GtkBuilder* builder = gtk_builder_new();
     GError* error = NULL;
 
@@ -27,10 +30,11 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
 
     GtkIconTheme* theme =
         gtk_icon_theme_get_for_display(gdk_display_get_default());
-    if (gtk_icon_theme_has_icon(theme, "vektor-circle-symbolic"))
+    
+    /*if (gtk_icon_theme_has_icon(theme, "vektor-circle-symbolic"))
         g_print("GTK sees it!\n");
     else
-        g_print("Still invisible...\n");
+        g_print("Still invisible...\n");*/
 
     // populate state
     stateOut->window =
@@ -50,6 +54,8 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
         GTK_BUTTON(gtk_builder_get_object(builder, "button_rectangletool"));
     stateOut->workspaceButtonCircletool =
         GTK_BUTTON(gtk_builder_get_object(builder, "button_circletool"));
+    stateOut->workspaceColorPicker =
+        VEKTOR_COLOR_WHEEL(gtk_builder_get_object(builder, "color_picker"));
 
     // Set window properties
     gtk_window_set_application(stateOut->window, app);
@@ -60,9 +66,5 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
 }
 
 void vektor_uictrl_map(VektorWidgetState* state) {
-
-    // set the workspace divider to 7:3 ratio
-    int window_width = gtk_widget_get_width(GTK_WIDGET(state->window));
-    g_print("%i", window_width);
     gtk_paned_set_position(state->workspacePaned, 800 * .7);
 }

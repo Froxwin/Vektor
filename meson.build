@@ -20,6 +20,7 @@ src = files(
   'src/core/raster.c',
   'src/ui/uicontroller.c',
   'src/ui/vektorcanvas.c',
+  'src/ui/widgets/colorwheel.c',
   'src/application/applicationstate.c'
 )
 

@@ -9,8 +9,12 @@
 typedef enum VektorAppTool { VektorLineTool } VektorAppTool;
 
 typedef struct VektorAppState {
+    VektorWidgetState* widgetState;
+
     VektorAppTool selectedTool;
     VektorShape* selectedShape;
+
+    VektorColor currentColor;
 
     // Logic space
     VektorShapeBuffer* shapeBuffer;

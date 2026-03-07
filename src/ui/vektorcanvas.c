@@ -56,9 +56,6 @@ static void init_shader(void) {
     GLuint vertex = compile_shader(GL_VERTEX_SHADER, vert_src);
     GLuint fragment = compile_shader(GL_FRAGMENT_SHADER, frag_src);
 
-    printf("%s\n", vert_src);
-    printf("%s\n", frag_src);
-
     shader_program = glCreateProgram();
     glAttachShader(shader_program, vertex);
     glAttachShader(shader_program, fragment);
@@ -99,11 +96,6 @@ static gboolean render(GtkGLArea* area, GdkGLContext* context,
                        VektorShapeBuffer* prims) {
     vektor_rasterize(&vb, prims);
 
-    for (size_t i = 0; i < vb.count; i++) {
-        printf("Vertex %zu: x=%f, y=%f\n", i, vb.vertices[i].coords.x,
-               vb.vertices[i].coords.y);
-    }
-
     glBufferData(GL_ARRAY_BUFFER, vb.count * sizeof(Vertex), vb.vertices,
                  GL_STATIC_DRAW);
 
@@ -122,7 +114,7 @@ static gboolean render(GtkGLArea* area, GdkGLContext* context,
 
     glDrawArrays(GL_TRIANGLES, 0, vb.count);
     GLenum err = glGetError();
-    printf("OpenGL error: %x\n", err);
+    //printf("OpenGL error: %x\n", err);
     // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
     glUseProgram(0);
