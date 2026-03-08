@@ -143,7 +143,7 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     *stateOut->shapeBuffer = (VektorShapeBuffer){0};
     stateOut->canvas = malloc(sizeof(VektorCanvas));
     stateOut->widgetState = wstate;
-    stateOut->currentColor = vektor_color_blank;
+    stateOut->currentColor = vektor_color_solid(0, 0, 0);
     stateOut->selectedShape = NULL;
     vektor_canvas_init(wstate, stateOut->canvas, stateOut->shapeBuffer);
 

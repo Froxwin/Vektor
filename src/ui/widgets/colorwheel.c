@@ -362,7 +362,8 @@ VektorColor vektor_color_wheel_get_color(VektorColorWheel* wheel) {
     return (VektorColor) {
         .r = (unsigned char)(r*255), 
         .g = (unsigned char)(g*255), 
-        .b = (unsigned char)(b*255) 
+        .b = (unsigned char)(b*255) ,
+        .a = 255
     };
 }
 
