@@ -45,6 +45,51 @@ static gboolean point_in_triangle(
     return (*u >= 0 && *v >= 0 && *w >= 0);
 }
 
+static void closest_point_on_segment(
+    double px, double py,
+    double ax, double ay,
+    double bx, double by,
+    double *rx, double *ry)
+{
+    double abx = bx - ax;
+    double aby = by - ay;
+
+    double apx = px - ax;
+    double apy = py - ay;
+
+    double t = (apx*abx + apy*aby) / (abx*abx + aby*aby);
+
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+
+    *rx = ax + abx * t;
+    *ry = ay + aby * t;
+}
+
+static void closest_point_on_triangle(
+    double px, double py,
+    double ax, double ay,
+    double bx, double by,
+    double cx, double cy,
+    double *rx, double *ry)
+{
+    double p1x,p1y;
+    double p2x,p2y;
+    double p3x,p3y;
+
+    closest_point_on_segment(px,py, ax,ay, bx,by, &p1x,&p1y);
+    closest_point_on_segment(px,py, bx,by, cx,cy, &p2x,&p2y);
+    closest_point_on_segment(px,py, cx,cy, ax,ay, &p3x,&p3y);
+
+    double d1 = (px-p1x)*(px-p1x) + (py-p1y)*(py-p1y);
+    double d2 = (px-p2x)*(px-p2x) + (py-p2y)*(py-p2y);
+    double d3 = (px-p3x)*(px-p3x) + (py-p3y)*(py-p3y);
+
+    if (d1 <= d2 && d1 <= d3) { *rx = p1x; *ry = p1y; }
+    else if (d2 <= d3) { *rx = p2x; *ry = p2y; }
+    else { *rx = p3x; *ry = p3y; }
+}
+
 static void vektor_color_wheel_snapshot(GtkWidget* widget, GtkSnapshot* snapshot) {
     VektorColorWheel* self = VEKTOR_COLOR_WHEEL(widget);
 
@@ -147,7 +192,7 @@ static void vektor_color_wheel_snapshot(GtkWidget* widget, GtkSnapshot* snapshot
     cairo_arc(cr, px, py, 5, 0, 2*M_PI);
 
     float fr, fg, fb;
-    vektor_colorout_wheel_get_color(self, &fr, &fg, &fb);
+    vektor_color_wheel_get_colorout(self, &fr, &fg, &fb);
     cairo_set_source_rgb(cr, fr, fg, fb);
     cairo_fill_preserve(cr);
     cairo_set_source_rgb(cr, 0.1, 0.1, 0.1);
@@ -206,7 +251,8 @@ static void on_click(GtkGestureClick* gesture, int n_press, double x, double y, 
     double cy2 = cy - 0.866 * triangle_radius;
 
     double u,v,w;
-    if(point_in_triangle(x,y, ax,ay, bx,by, cx2,cy2, &u,&v,&w)) {
+    gboolean inside = point_in_triangle(x,y, ax,ay, bx,by, cx2,cy2, &u,&v,&w);
+    if(inside) { // pick point in the triangle
 
         double denom = u + v;
         if (denom > 0.0001) {  // avoid div-by-zero at black vertex
@@ -222,14 +268,41 @@ static void on_click(GtkGestureClick* gesture, int n_press, double x, double y, 
         double dy = y - cy;
         double dist = sqrt(dx*dx+dy*dy);
 
-        if(dist > inner_radius && dist < outer_radius) {
+        if(dist > inner_radius && dist < outer_radius) { // pick point on color wheel
             
             double angle = atan2(dy, dx);
             if(angle < 0) { angle += 2 * M_PI; }
 
             wheel->hue = angle / (2*M_PI);
             g_signal_emit(wheel, signals[COLOR_CHANGED], 0);
+            
+        } else if (dist < inner_radius) { // snap to triangle edge
+            double sx,sy;
+
+            closest_point_on_triangle(
+                x,y,
+                ax,ay,
+                bx,by,
+                cx2,cy2,
+                &sx,&sy
+            );
+
+            x = sx;
+            y = sy;
+
+            point_in_triangle(x,y, ax,ay, bx,by, cx2,cy2, &u,&v,&w);
+
+            // calculate triangle point
+            double denom = u + v;
+            if (denom > 0.0001) {
+                wheel->saturation = u / denom;
+            } else {
+                wheel->saturation = 0.0;
+            }
+            wheel->lightness = denom;
+            g_signal_emit(wheel, signals[COLOR_CHANGED], 0);
         }
+        
     }
 
     gtk_widget_queue_draw(widget);
@@ -293,9 +366,20 @@ VektorColor vektor_color_wheel_get_color(VektorColorWheel* wheel) {
     };
 }
 
-void vektor_colorout_wheel_get_color(VektorColorWheel* wheel, float* r, float* g, float* b) {
+void vektor_color_wheel_get_colorout(VektorColorWheel* wheel, float* r, float* g, float* b) {
     gtk_hsv_to_rgb(wheel->hue,
                    wheel->saturation,
                    wheel->lightness,
                    r, g, b);
+}
+
+void vektor_color_wheel_set_color(VektorColorWheel* wheel, VektorColor c) {
+    float h,s,v;
+    gtk_rgb_to_hsv(c.r/255.0, c.g/255.0, c.b/255.0, &h, &s, &v);
+    wheel->hue = (float)h;
+    wheel->saturation = (float)s;
+    wheel->lightness = (float)v;
+
+    gtk_widget_queue_draw(GTK_WIDGET(wheel));
+    g_signal_emit(wheel, signals[COLOR_CHANGED], 0);
 }

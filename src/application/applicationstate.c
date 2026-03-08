@@ -1,3 +1,6 @@
+#include "src/ui/uicontroller.h"
+#include "stdlib.h"
+
 #include "./applicationstate.h"
 #include "glib.h"
 #include "gtk/gtk.h"
@@ -39,8 +42,30 @@ static void appstate_on_color_change(VektorColorWheel* wheel, gpointer user_data
     if(appstate->selectedShape != NULL) {
         appstate->selectedShape->style.stroke_color = c;
     }
+
+    // set entry fields under the color selector
+    char *str_r, *str_g, *str_b;
+    str_r = g_strdup_printf("%d", c.r);
+    str_g = g_strdup_printf("%d", c.g);
+    str_b = g_strdup_printf("%d", c.b);
+    gtk_editable_set_text(GTK_EDITABLE(appstate->widgetState->sidepanelEntryR), str_r); 
+    gtk_editable_set_text(GTK_EDITABLE(appstate->widgetState->sidepanelEntryG), str_g);
+    gtk_editable_set_text(GTK_EDITABLE(appstate->widgetState->sidepanelEntryB), str_b);
     
     gtk_gl_area_queue_render(GTK_GL_AREA(appstate->widgetState->workspaceCanvas));
+}
+
+static void appstate_on_entry_update(GtkEntry* entry, gpointer user_data) {
+    VektorWidgetState* widgetState = (VektorWidgetState*)user_data;
+    unsigned char r = (unsigned char)atoi(gtk_editable_get_text(GTK_EDITABLE(widgetState->sidepanelEntryR)));
+    unsigned char g = (unsigned char)atoi(gtk_editable_get_text(GTK_EDITABLE(widgetState->sidepanelEntryG)));
+    unsigned char b = (unsigned char)atoi(gtk_editable_get_text(GTK_EDITABLE(widgetState->sidepanelEntryB)));
+
+    g_print("%d", r);
+    vektor_color_wheel_set_color(
+        VEKTOR_COLOR_WHEEL(widgetState->workspaceColorPicker), 
+        (VektorColor){.r = r, .g = g, .b = b}
+    );
 }
 
 static void canvas_onclick(GtkGestureClick* gesture, int n_press, double x,
@@ -138,6 +163,15 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     // hook relevant stuff to master color picker
     g_signal_connect(G_OBJECT(wstate->workspaceColorPicker), "color-changed",
                     G_CALLBACK(appstate_on_color_change), stateOut);
+
+    // hook rgb entries change
+    g_signal_connect(G_OBJECT(wstate->sidepanelEntryR), "activate",
+                    G_CALLBACK(appstate_on_entry_update), stateOut->widgetState);
+    g_signal_connect(G_OBJECT(wstate->sidepanelEntryG), "activate",
+                    G_CALLBACK(appstate_on_entry_update), stateOut->widgetState);
+    g_signal_connect(G_OBJECT(wstate->sidepanelEntryB), "activate",
+                    G_CALLBACK(appstate_on_entry_update), stateOut->widgetState);
+
 
     // Add click gesture to canvas
     GtkGesture* canvasClickGesture = gtk_gesture_click_new();

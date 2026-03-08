@@ -12,6 +12,7 @@ all the widgets used in internal logic of the program
 typedef struct VektorWidgetState {
     GtkWindow* window;
     GtkPaned* workspacePaned;
+    GtkPaned* sidepanelPaned;
     GtkGLArea* workspaceCanvas;
 
     GtkButton* workspaceButtonMasterShapes;
@@ -21,6 +22,10 @@ typedef struct VektorWidgetState {
     GtkButton* workspaceButtonCircletool;
 
     VektorColorWheel* workspaceColorPicker;
+
+    GtkEntry* sidepanelEntryR;
+    GtkEntry* sidepanelEntryG;
+    GtkEntry* sidepanelEntryB;
 
     // GtkWidget* Workspace
 } VektorWidgetState;

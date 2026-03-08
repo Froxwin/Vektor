@@ -9,6 +9,7 @@ G_DECLARE_FINAL_TYPE(VektorColorWheel, vektor_color_wheel, VEKTOR, COLOR_WHEEL, 
 
 GtkWidget* vektor_color_wheel_new(void);
 VektorColor vektor_color_wheel_get_color(VektorColorWheel* wheel);
-void vektor_colorout_wheel_get_color(VektorColorWheel* wheel, float* r, float* g, float* b);
+void vektor_color_wheel_get_colorout(VektorColorWheel* wheel, float* r, float* g, float* b);
+void vektor_color_wheel_set_color(VektorColorWheel* wheel, VektorColor c);
 
 #endif

@@ -41,6 +41,8 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
         GTK_WINDOW(gtk_builder_get_object(builder, "main_window"));
     stateOut->workspacePaned =
         GTK_PANED(gtk_builder_get_object(builder, "workspace_paned"));
+    stateOut->sidepanelPaned =
+        GTK_PANED(gtk_builder_get_object(builder, "sidepanel"));
     stateOut->workspaceCanvas =
         GTK_GL_AREA(gtk_builder_get_object(builder, "workspace"));
 
@@ -57,6 +59,13 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
     stateOut->workspaceColorPicker =
         VEKTOR_COLOR_WHEEL(gtk_builder_get_object(builder, "color_picker"));
 
+    stateOut->sidepanelEntryR = 
+        GTK_ENTRY(gtk_builder_get_object(builder, "spin_color_r"));
+    stateOut->sidepanelEntryG = 
+        GTK_ENTRY(gtk_builder_get_object(builder, "spin_color_g"));
+    stateOut->sidepanelEntryB = 
+        GTK_ENTRY(gtk_builder_get_object(builder, "spin_color_b"));
+
     // Set window properties
     gtk_window_set_application(stateOut->window, app);
     gtk_window_set_title(stateOut->window, "Vektor");
@@ -67,4 +76,5 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
 
 void vektor_uictrl_map(VektorWidgetState* state) {
     gtk_paned_set_position(state->workspacePaned, 800 * .7);
+    gtk_paned_set_position(state->sidepanelPaned, 250);
 }
