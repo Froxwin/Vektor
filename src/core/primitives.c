@@ -1,4 +1,7 @@
 #include "primitives.h"
+#include <assert.h>
+#include <math.h>
+#include <stddef.h>
 
 VektorPolyline* vektor_polyline_new(void) {
     VektorPolyline* pl = malloc(sizeof(VektorPolyline));
@@ -54,4 +57,57 @@ void vektor_shapebuffer_add_shape(VektorShapeBuffer* buffer,
             realloc(buffer->shapes, sizeof(VektorShape) * buffer->capacity);
     }
     buffer->shapes[buffer->count++] = shape;
+}
+
+VektorBBox polyline_mk_bbox(VektorPrimitive prim) {
+    float min_x, max_x, min_y, max_y;
+    for (size_t i = 0; i < prim.polyline->count; i++) {
+        V2 p = prim.polyline->points[i];
+        min_x = fminf(min_x, p.x);
+        min_y = fminf(min_y, p.y);
+
+        max_x = fminf(max_x, p.x);
+        max_y = fminf(max_y, p.y);
+    }
+    return (VektorBBox){(V2){min_x, min_y}, (V2){max_x, max_y}};
+}
+
+VektorBBox polygon_mk_bbox(VektorPrimitive prim) {
+    float min_x, max_x, min_y, max_y;
+    for (size_t i = 0; i < prim.polygon->count; i++) {
+        V2 p = prim.polygon->points[i];
+        min_x = fminf(min_x, p.x);
+        min_y = fminf(min_y, p.y);
+
+        max_x = fminf(max_x, p.x);
+        max_y = fminf(max_y, p.y);
+    }
+    return (VektorBBox){(V2){min_x, min_y}, (V2){max_x, max_y}};
+}
+
+VektorBBox vektor_mk_bbox(VektorPrimitive prim) {
+    switch (prim.kind) {
+    case VEKTOR_POLYLINE:
+        return polyline_mk_bbox(prim);
+        break;
+
+    case VEKTOR_POLYGON:
+        return polygon_mk_bbox(prim);
+        break;
+
+    default:
+        // TODO: fill in all primitives
+        break;
+    }
+}
+
+VektorShape vektor_shape_new(VektorPrimitive prim, VektorStyle style,
+                             int z_index) {
+    return (VektorShape){.primitive = prim, .style = style, .z_index = z_index, .bbox=vektor_mk_bbox(prim)};
+}
+
+void vektor_shapes_update_bbox(VektorShapeBuffer* buffer) {
+    for (size_t i = 0; i < buffer->count; i++) {
+        buffer->shapes[i].bbox = vektor_mk_bbox(buffer->shapes[i].primitive);
+    }
 }

@@ -81,7 +81,8 @@ begin_click_dispatch:
                               .stroke_width = 0.01};
             VektorShape shape = (VektorShape){
                 .primitive = linePrimitive, .z_index = 0, .style = style};
-            vektor_shapebuffer_add_shape(state->shapeBuffer, shape);
+            vektor_shapebuffer_add_shape(state->shapeBuffer, vektor_shape_new(linePrimitive, style, 0));
+
 
             state->selectedShape =
                 &(state->shapeBuffer->shapes[state->shapeBuffer->count - 1]);
@@ -96,6 +97,13 @@ begin_click_dispatch:
 
         vektor_polyline_add_point(state->selectedShape->primitive.polyline,
                                   pos);
+
+                                              vektor_shapes_update_bbox(state->shapeBuffer);
+
+
+                    for (size_t i = 0; i < state->shapeBuffer->count; i++) {
+                g_print("<%f,%f>-<%f,%f>\n", state->shapeBuffer->shapes[i].bbox.min.x, state->shapeBuffer->shapes[i].bbox.min.y, state->shapeBuffer->shapes[i].bbox.max.x, state->shapeBuffer->shapes[i].bbox.max.y);
+            }
     }
 }
 
@@ -111,6 +119,7 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     stateOut->canvas = malloc(sizeof(VektorCanvas));
     stateOut->widgetState = wstate;
     stateOut->currentColor = vektor_color_blank;
+    stateOut->selectedShape = NULL;
     vektor_canvas_init(wstate, stateOut->canvas, stateOut->shapeBuffer);
 
     // link all the buttons

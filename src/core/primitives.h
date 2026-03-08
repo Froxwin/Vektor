@@ -52,10 +52,24 @@ typedef struct {
 } VektorStyle;
 
 typedef struct {
+    V2 min;
+    V2 max;
+} VektorBBox;
+
+typedef struct {
     VektorStyle style;
     int z_index;
+    VektorBBox bbox;
     VektorPrimitive primitive;
 } VektorShape;
+
+VektorBBox polyline_mk_bbox(VektorPrimitive prim);
+VektorBBox polygon_mk_bbox(VektorPrimitive prim);
+
+VektorBBox vektor_mk_bbox(VektorPrimitive prim);
+
+VektorShape vektor_shape_new(VektorPrimitive prim, VektorStyle style,
+                             int z_index);
 
 typedef struct {
     VektorShape* shapes;
@@ -64,5 +78,5 @@ typedef struct {
 } VektorShapeBuffer;
 
 void vektor_shapebuffer_add_shape(VektorShapeBuffer* buffer, VektorShape shape);
-
+void vektor_shapes_update_bbox(VektorShapeBuffer* buffer);
 #endif // PRIMITIVES_H_
