@@ -20,6 +20,7 @@ typedef struct VektorWidgetState {
     GtkButton* workspaceButtonLinetool;
     GtkButton* workspaceButtonRecttool;
     GtkButton* workspaceButtonCircletool;
+    GtkButton* workspaceButtonPolygontool;
 
     VektorColorWheel* workspaceColorPicker;
 

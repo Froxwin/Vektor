@@ -94,6 +94,8 @@ static void init_geometry(void) {
 }
 static gboolean render(GtkGLArea* area, GdkGLContext* context,
                        VektorShapeBuffer* prims) {
+    
+    vb.count = 0;
     vektor_rasterize(&vb, prims);
 
     glBufferData(GL_ARRAY_BUFFER, vb.count * sizeof(Vertex), vb.vertices,

@@ -101,6 +101,13 @@
                                                                         </object>
                                                                     </child>
 
+                                                                    <!--Polygon tool-->
+                                                                    <child>
+                                                                        <object class="GtkButton" id="button_polygontool">
+                                                                            <property name="icon-name">tool-polygon-symbolic</property>
+                                                                        </object>
+                                                                    </child>
+
                                                                     <!--Circle tool-->
                                                                     <child>
                                                                         <object class="GtkButton" id="button_circletool">

@@ -20,17 +20,14 @@ void vektor_polyline_flatten(EdgeBuffer* buffer, VektorPolyline* line,
     }
 }
 
-void vektor_polygon_flatten(EdgeBuffer* buffer, VektorPolygon* pg, size_t j) {
-    size_t n = pg->count;
-    if (n < 3)
-        return;
-
-    for (size_t i = 0; i < n; i++) {
-        V2 p1 = pg->points[i];
-        V2 p2 = pg->points[(i + 1) % n];
-        int winding = (p1.y < p2.y) ? +1 : -1;
-        vektor_edgebuffer_add_edge(buffer, (Edge){p1, p2, winding, j});
+void vektor_polygon_flatten(EdgeBuffer* buffer, VektorPolygon* polygon,
+                             size_t j) {
+    for (size_t i = 0; i + 1 < polygon->count; i++) {
+        vektor_edgebuffer_add_edge(
+            buffer, (Edge){polygon->points[i], polygon->points[i + 1], 0, j});
     }
+    vektor_edgebuffer_add_edge(
+        buffer, (Edge){polygon->points[polygon->count - 1], polygon->points[0], 0, j});
 }
 
 void vektor_rasterize(VertexBuffer* vb, VektorShapeBuffer* shapes) {

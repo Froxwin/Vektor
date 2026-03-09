@@ -34,12 +34,13 @@ static void appstate_reveal_subtools(GtkButton* button, gpointer user_data) {
     gtk_revealer_set_reveal_child(revealer, !visible);
 }
 
-static void appstate_on_color_change(VektorColorWheel* wheel, gpointer user_data) {
+static void appstate_on_color_change(VektorColorWheel* wheel,
+                                     gpointer user_data) {
     VektorColor c = vektor_color_wheel_get_color(wheel);
     VektorAppState* appstate = (VektorAppState*)user_data;
     appstate->currentColor = c;
 
-    if(appstate->selectedShape != NULL) {
+    if (appstate->selectedShape != NULL) {
         appstate->selectedShape->style.stroke_color = c;
     }
 
@@ -48,24 +49,30 @@ static void appstate_on_color_change(VektorColorWheel* wheel, gpointer user_data
     str_r = g_strdup_printf("%d", c.r);
     str_g = g_strdup_printf("%d", c.g);
     str_b = g_strdup_printf("%d", c.b);
-    gtk_editable_set_text(GTK_EDITABLE(appstate->widgetState->sidepanelEntryR), str_r); 
-    gtk_editable_set_text(GTK_EDITABLE(appstate->widgetState->sidepanelEntryG), str_g);
-    gtk_editable_set_text(GTK_EDITABLE(appstate->widgetState->sidepanelEntryB), str_b);
-    
-    gtk_gl_area_queue_render(GTK_GL_AREA(appstate->widgetState->workspaceCanvas));
+    gtk_editable_set_text(GTK_EDITABLE(appstate->widgetState->sidepanelEntryR),
+                          str_r);
+    gtk_editable_set_text(GTK_EDITABLE(appstate->widgetState->sidepanelEntryG),
+                          str_g);
+    gtk_editable_set_text(GTK_EDITABLE(appstate->widgetState->sidepanelEntryB),
+                          str_b);
+
+    gtk_gl_area_queue_render(
+        GTK_GL_AREA(appstate->widgetState->workspaceCanvas));
 }
 
 static void appstate_on_entry_update(GtkEntry* entry, gpointer user_data) {
     VektorWidgetState* widgetState = (VektorWidgetState*)user_data;
-    unsigned char r = (unsigned char)atoi(gtk_editable_get_text(GTK_EDITABLE(widgetState->sidepanelEntryR)));
-    unsigned char g = (unsigned char)atoi(gtk_editable_get_text(GTK_EDITABLE(widgetState->sidepanelEntryG)));
-    unsigned char b = (unsigned char)atoi(gtk_editable_get_text(GTK_EDITABLE(widgetState->sidepanelEntryB)));
+    unsigned char r = (unsigned char)atoi(
+        gtk_editable_get_text(GTK_EDITABLE(widgetState->sidepanelEntryR)));
+    unsigned char g = (unsigned char)atoi(
+        gtk_editable_get_text(GTK_EDITABLE(widgetState->sidepanelEntryG)));
+    unsigned char b = (unsigned char)atoi(
+        gtk_editable_get_text(GTK_EDITABLE(widgetState->sidepanelEntryB)));
 
     g_print("%d", r);
     vektor_color_wheel_set_color(
-        VEKTOR_COLOR_WHEEL(widgetState->workspaceColorPicker), 
-        (VektorColor){.r = r, .g = g, .b = b}
-    );
+        VEKTOR_COLOR_WHEEL(widgetState->workspaceColorPicker),
+        (VektorColor){.r = r, .g = g, .b = b});
 }
 
 static void canvas_onclick(GtkGestureClick* gesture, int n_press, double x,
@@ -101,13 +108,11 @@ begin_click_dispatch:
             VektorPolyline* line = vektor_polyline_new();
             VektorPrimitive linePrimitive =
                 (VektorPrimitive){.kind = VEKTOR_POLYLINE, .polyline = line};
-            VektorStyle style =
-                (VektorStyle){.stroke_color = state->currentColor,
-                              .stroke_width = 0.01};
-            VektorShape shape = (VektorShape){
-                .primitive = linePrimitive, .z_index = 0, .style = style};
-            vektor_shapebuffer_add_shape(state->shapeBuffer, vektor_shape_new(linePrimitive, style, 0));
+            VektorStyle style = (VektorStyle){
+                .stroke_color = state->currentColor, .stroke_width = 0.01};
 
+            vektor_shapebuffer_add_shape(
+                state->shapeBuffer, vektor_shape_new(linePrimitive, style, 0));
 
             state->selectedShape =
                 &(state->shapeBuffer->shapes[state->shapeBuffer->count - 1]);
@@ -120,15 +125,32 @@ begin_click_dispatch:
             goto begin_click_dispatch; // retry
         }
 
-        vektor_polyline_add_point(state->selectedShape->primitive.polyline,
-                                  pos);
+        vektor_polyline_add_point(state->selectedShape->primitive.polyline, pos);
+        vektor_shapes_update_bbox(state->shapeBuffer);
+    }
+    else if (state->selectedTool == VektorPolygonTool) {
+        // create new polygon shape if none is selected
+        if (state->selectedShape == NULL) {
 
-                                              vektor_shapes_update_bbox(state->shapeBuffer);
+            VektorPolygon* polygon = vektor_polygon_new();
+            VektorPrimitive polygonPrimitive =
+                (VektorPrimitive){.kind = VEKTOR_POLYGON, .polygon = polygon};
+            VektorStyle style = (VektorStyle){
+                .stroke_color = state->currentColor, .stroke_width = 0.01};
+            vektor_shapebuffer_add_shape(
+                state->shapeBuffer, vektor_shape_new(polygonPrimitive, style, 0));
 
+            state->selectedShape =
+                &(state->shapeBuffer->shapes[state->shapeBuffer->count - 1]);
 
-                    for (size_t i = 0; i < state->shapeBuffer->count; i++) {
-                g_print("<%f,%f>-<%f,%f>\n", state->shapeBuffer->shapes[i].bbox.min.x, state->shapeBuffer->shapes[i].bbox.min.y, state->shapeBuffer->shapes[i].bbox.max.x, state->shapeBuffer->shapes[i].bbox.max.y);
-            }
+        } else if (state->selectedShape->primitive.kind != VEKTOR_POLYGON) {
+            g_warning("Invalid selected primitive; polygon expected");
+            state->selectedShape = NULL;
+            goto begin_click_dispatch; // retry
+        }
+
+        vektor_polygon_add_point(state->selectedShape->primitive.polygon, pos);
+        vektor_shapes_update_bbox(state->shapeBuffer);
     }
 }
 
@@ -137,6 +159,11 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     data_linetool->state = stateOut;
     data_linetool->tool = VektorLineTool;
     data_linetool->revealer = wstate->workspaceRevealerShapes;
+
+    button_tool_set_data* data_polygontool = malloc(sizeof(button_tool_set_data));
+    data_polygontool->state = stateOut;
+    data_polygontool->tool = VektorPolygonTool;
+    data_polygontool->revealer = wstate->workspaceRevealerShapes;
 
     // populate appstate
     stateOut->shapeBuffer = malloc(sizeof(VektorShapeBuffer));
@@ -154,6 +181,8 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
                      G_CALLBACK(appstate_set_tool), data_linetool);
     g_signal_connect(G_OBJECT(wstate->workspaceButtonCircletool), "clicked",
                      G_CALLBACK(appstate_set_tool), data_linetool);
+    g_signal_connect(G_OBJECT(wstate->workspaceButtonPolygontool), "clicked",
+                     G_CALLBACK(appstate_set_tool), data_polygontool);
 
     // hook subtool revealers to their master buttons
     g_signal_connect(G_OBJECT(wstate->workspaceButtonMasterShapes), "clicked",
@@ -162,16 +191,18 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
 
     // hook relevant stuff to master color picker
     g_signal_connect(G_OBJECT(wstate->workspaceColorPicker), "color-changed",
-                    G_CALLBACK(appstate_on_color_change), stateOut);
+                     G_CALLBACK(appstate_on_color_change), stateOut);
 
     // hook rgb entries change
     g_signal_connect(G_OBJECT(wstate->sidepanelEntryR), "activate",
-                    G_CALLBACK(appstate_on_entry_update), stateOut->widgetState);
+                     G_CALLBACK(appstate_on_entry_update),
+                     stateOut->widgetState);
     g_signal_connect(G_OBJECT(wstate->sidepanelEntryG), "activate",
-                    G_CALLBACK(appstate_on_entry_update), stateOut->widgetState);
+                     G_CALLBACK(appstate_on_entry_update),
+                     stateOut->widgetState);
     g_signal_connect(G_OBJECT(wstate->sidepanelEntryB), "activate",
-                    G_CALLBACK(appstate_on_entry_update), stateOut->widgetState);
-
+                     G_CALLBACK(appstate_on_entry_update),
+                     stateOut->widgetState);
 
     // Add click gesture to canvas
     GtkGesture* canvasClickGesture = gtk_gesture_click_new();

@@ -56,6 +56,8 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
         GTK_BUTTON(gtk_builder_get_object(builder, "button_rectangletool"));
     stateOut->workspaceButtonCircletool =
         GTK_BUTTON(gtk_builder_get_object(builder, "button_circletool"));
+    stateOut->workspaceButtonPolygontool =
+        GTK_BUTTON(gtk_builder_get_object(builder, "button_polygontool"));
     stateOut->workspaceColorPicker =
         VEKTOR_COLOR_WHEEL(gtk_builder_get_object(builder, "color_picker"));
 

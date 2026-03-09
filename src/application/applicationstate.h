@@ -6,7 +6,10 @@
 #include "../ui/vektorcanvas.h"
 #include "src/core/raster.h"
 
-typedef enum VektorAppTool { VektorLineTool } VektorAppTool;
+typedef enum VektorAppTool { 
+    VektorLineTool,
+    VektorPolygonTool,
+} VektorAppTool;
 
 typedef struct VektorAppState {
     VektorWidgetState* widgetState;
