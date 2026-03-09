@@ -234,7 +234,6 @@ static void on_click(GtkGestureClick* gesture, int n_press, double x, double y, 
 
     double outer_radius = MIN(width, height) / 2.0;
     double wheel_radius = outer_radius * 0.95;
-    double inner_radius = wheel_radius * 0.9;
 
     double triangle_radius = wheel_radius * 0.75;
 
@@ -252,31 +251,10 @@ static void on_click(GtkGestureClick* gesture, int n_press, double x, double y, 
 
     double u,v,w;
     gboolean inside = point_in_triangle(x,y, ax,ay, bx,by, cx2,cy2, &u,&v,&w);
-    if(inside) { // pick point in the triangle
 
-        double denom = u + v;
-        if (denom > 0.0001) {  // avoid div-by-zero at black vertex
-            wheel->saturation = u / denom;
-        } else {
-            wheel->saturation = 0.0;  // arbitrary, since S irrelevant at V=0
-        }
-        wheel->lightness = denom;
-        g_signal_emit(wheel, signals[COLOR_CHANGED], 0);
+    if(wheel->dragging_triangle) {
 
-    } else {
-        double dx = x - cx;
-        double dy = y - cy;
-        double dist = sqrt(dx*dx+dy*dy);
-
-        if(dist > inner_radius && dist < outer_radius) { // pick point on color wheel
-            
-            double angle = atan2(dy, dx);
-            if(angle < 0) { angle += 2 * M_PI; }
-
-            wheel->hue = angle / (2*M_PI);
-            g_signal_emit(wheel, signals[COLOR_CHANGED], 0);
-            
-        } else if (dist < inner_radius) { // snap to triangle edge
+        if(!inside) { // if outside triangle, snap to its edge
             double sx,sy;
 
             closest_point_on_triangle(
@@ -291,20 +269,28 @@ static void on_click(GtkGestureClick* gesture, int n_press, double x, double y, 
             y = sy;
 
             point_in_triangle(x,y, ax,ay, bx,by, cx2,cy2, &u,&v,&w);
-
-            // calculate triangle point
-            double denom = u + v;
-            if (denom > 0.0001) {
-                wheel->saturation = u / denom;
-            } else {
-                wheel->saturation = 0.0;
-            }
-            wheel->lightness = denom;
-            g_signal_emit(wheel, signals[COLOR_CHANGED], 0);
         }
+
+        double denom = u + v;
+        if (denom > 0.0001) {  // avoid div-by-zero at black vertex
+            wheel->saturation = u / denom;
+        } else {
+            wheel->saturation = 0.0;  // arbitrary, since S irrelevant at V=0
+        }
+        wheel->lightness = denom;
+
+    } else { // dragging wheel
+        double dx = x - cx;
+        double dy = y - cy;
+
+        double angle = atan2(dy, dx);
+        if(angle < 0) { angle += 2 * M_PI; }
+
+        wheel->hue = angle / (2*M_PI);
         
     }
 
+    g_signal_emit(wheel, signals[COLOR_CHANGED], 0);
     gtk_widget_queue_draw(widget);
 }
 
@@ -318,6 +304,39 @@ static void on_drag(GtkGestureDrag* gesture, double offset_x, double offset_y, g
     on_click(NULL,0,x,y,data);
 }
 
+static void on_drag_begin(GtkGestureDrag* gesture, gdouble start_x, gdouble start_y, gpointer user_data) {
+    // set dragging_wheel or dragging_triangle which are used
+    // to determine to where the cursor should snap to
+
+    VektorColorWheel* wheel = VEKTOR_COLOR_WHEEL(user_data);
+    GtkWidget* widget = GTK_WIDGET(wheel);
+
+    int width = gtk_widget_get_width(widget);
+    int height = gtk_widget_get_height(widget);
+
+    double cx = width / 2.0;
+    double cy = height / 2.0;
+
+    double dx = start_x - cx;
+    double dy = start_y - cy;
+    double dist = sqrt(dx*dx+dy*dy);
+
+    double outer_radius = MIN(width, height) / 2.0;
+    double wheel_radius = outer_radius * 0.95;
+    double inner_radius = wheel_radius * 0.9;
+
+    if(dist > inner_radius) {
+        wheel->dragging_wheel = TRUE;
+        wheel->dragging_triangle = FALSE;
+    } else if (dist < inner_radius) {
+        wheel->dragging_wheel = FALSE;
+        wheel->dragging_triangle = TRUE;
+    } else {
+        wheel->dragging_wheel = FALSE;
+        wheel->dragging_triangle = FALSE;
+    }
+}
+
 static void vektor_color_wheel_init(VektorColorWheel* self) {
     GtkGesture* click = gtk_gesture_click_new();
     gtk_widget_add_controller(GTK_WIDGET(self), GTK_EVENT_CONTROLLER(click));
@@ -328,6 +347,7 @@ static void vektor_color_wheel_init(VektorColorWheel* self) {
     gtk_widget_add_controller(GTK_WIDGET(self), GTK_EVENT_CONTROLLER(drag));
 
     g_signal_connect(drag, "drag-update", G_CALLBACK(on_drag), self);
+    g_signal_connect(drag, "drag-begin", G_CALLBACK(on_drag_begin), self);
 }
 
 static void vektor_color_wheel_class_init(VektorColorWheelClass* klass) {
