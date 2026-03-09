@@ -23,10 +23,16 @@ typedef struct {
     double radius;
 } VektorCircle;
 
+typedef struct {
+    V2 start;
+    V2 end;
+} VektorRectangle;
+
 typedef enum {
     VEKTOR_POLYLINE,
     VEKTOR_POLYGON,
-    VEKTOR_CIRCLE
+    VEKTOR_CIRCLE,
+    VEKTOR_RECTANGLE
 } VektorPrimitiveKind;
 
 typedef struct {
@@ -35,6 +41,7 @@ typedef struct {
         VektorPolyline* polyline;
         VektorPolygon* polygon;
         VektorCircle circle;
+        VektorRectangle rectangle;
     };
 } VektorPrimitive;
 
@@ -45,6 +52,11 @@ void vektor_polyline_free(VektorPolyline* pl);
 VektorPolygon* vektor_polygon_new(void);
 void vektor_polygon_add_point(VektorPolygon* pl, V2 point);
 void vektor_polygon_free(VektorPolygon* pl);
+
+VektorRectangle* vektor_rectangle_new(void);
+void vektor_rectangle_set_end(VektorRectangle* rct, V2 point);
+void vektor_rectangle_set_start(VektorRectangle* rct, V2 point);
+void vektor_rectangle_free(VektorRectangle* rct);
 
 typedef struct {
     VektorColor stroke_color;
@@ -63,10 +75,11 @@ typedef struct {
     VektorPrimitive primitive;
 } VektorShape;
 
-VektorBBox polyline_mk_bbox(VektorPrimitive prim);
-VektorBBox polygon_mk_bbox(VektorPrimitive prim);
+VektorBBox vektor_polyline_get_bbox(VektorPrimitive prim);
+VektorBBox vektor_polygon_get_bbox(VektorPrimitive prim);
+VektorBBox vektor_rectangle_get_bbox(VektorPrimitive prim);
 
-VektorBBox vektor_mk_bbox(VektorPrimitive prim);
+VektorBBox vektor_primitive_get_bbox(VektorPrimitive prim);
 
 VektorShape vektor_shape_new(VektorPrimitive prim, VektorStyle style,
                              int z_index);

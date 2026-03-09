@@ -49,6 +49,24 @@ void vektor_polygon_free(VektorPolygon* pg) {
     free(pg);
 }
 
+VektorRectangle* vektor_rectangle_new(void) {
+    VektorRectangle* rct = malloc(sizeof(VektorRectangle));
+    rct->start = (V2){.x = 0, .y = 0};
+    rct->end = (V2){.x = 0, .y = 0};
+    return rct;
+}
+
+void vektor_rectangle_set_end(VektorRectangle* rct, V2 point) {
+    rct->end = point;
+}
+void vektor_rectangle_set_start(VektorRectangle* rct, V2 point) {
+    rct->start = point;
+}
+
+void vektor_rectangle_free(VektorRectangle* rct) {
+    free(rct);
+}
+
 void vektor_shapebuffer_add_shape(VektorShapeBuffer* buffer,
                                   VektorShape shape) {
     if (buffer->count >= buffer->capacity) {
@@ -59,7 +77,7 @@ void vektor_shapebuffer_add_shape(VektorShapeBuffer* buffer,
     buffer->shapes[buffer->count++] = shape;
 }
 
-VektorBBox polyline_mk_bbox(VektorPrimitive prim) {
+VektorBBox vektor_polyline_get_bbox(VektorPrimitive prim) {
     float min_x, max_x, min_y, max_y;
     for (size_t i = 0; i < prim.polyline->count; i++) {
         V2 p = prim.polyline->points[i];
@@ -72,7 +90,7 @@ VektorBBox polyline_mk_bbox(VektorPrimitive prim) {
     return (VektorBBox){(V2){min_x, min_y}, (V2){max_x, max_y}};
 }
 
-VektorBBox polygon_mk_bbox(VektorPrimitive prim) {
+VektorBBox vektor_polygon_get_bbox(VektorPrimitive prim) {
     float min_x, max_x, min_y, max_y;
     for (size_t i = 0; i < prim.polygon->count; i++) {
         V2 p = prim.polygon->points[i];
@@ -85,14 +103,22 @@ VektorBBox polygon_mk_bbox(VektorPrimitive prim) {
     return (VektorBBox){(V2){min_x, min_y}, (V2){max_x, max_y}};
 }
 
-VektorBBox vektor_mk_bbox(VektorPrimitive prim) {
+VektorBBox vektor_rectangle_get_bbox(VektorPrimitive prim) {
+    return *(VektorBBox*)&prim.rectangle;
+}
+
+VektorBBox vektor_primitive_get_bbox(VektorPrimitive prim) {
     switch (prim.kind) {
     case VEKTOR_POLYLINE:
-        return polyline_mk_bbox(prim);
+        return vektor_polyline_get_bbox(prim);
         break;
 
     case VEKTOR_POLYGON:
-        return polygon_mk_bbox(prim);
+        return vektor_polygon_get_bbox(prim);
+        break;
+
+    case VEKTOR_RECTANGLE:
+        return vektor_rectangle_get_bbox(prim);
         break;
 
     default:
@@ -103,11 +129,11 @@ VektorBBox vektor_mk_bbox(VektorPrimitive prim) {
 
 VektorShape vektor_shape_new(VektorPrimitive prim, VektorStyle style,
                              int z_index) {
-    return (VektorShape){.primitive = prim, .style = style, .z_index = z_index, .bbox=vektor_mk_bbox(prim)};
+    return (VektorShape){.primitive = prim, .style = style, .z_index = z_index, .bbox=vektor_primitive_get_bbox(prim)};
 }
 
 void vektor_shapes_update_bbox(VektorShapeBuffer* buffer) {
     for (size_t i = 0; i < buffer->count; i++) {
-        buffer->shapes[i].bbox = vektor_mk_bbox(buffer->shapes[i].primitive);
+        buffer->shapes[i].bbox = vektor_primitive_get_bbox(buffer->shapes[i].primitive);
     }
 }

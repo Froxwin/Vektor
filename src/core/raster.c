@@ -12,7 +12,7 @@ void vektor_edgebuffer_add_edge(EdgeBuffer* buffer, Edge edge) {
     buffer->edges[buffer->count++] = edge;
 }
 
-void vektor_polyline_flatten(EdgeBuffer* buffer, VektorPolyline* line,
+void vektor_polyline_tessellate(EdgeBuffer* buffer, VektorPolyline* line,
                              size_t j) {
     for (size_t i = 0; i + 1 < line->count; i++) {
         vektor_edgebuffer_add_edge(
@@ -20,7 +20,7 @@ void vektor_polyline_flatten(EdgeBuffer* buffer, VektorPolyline* line,
     }
 }
 
-void vektor_polygon_flatten(EdgeBuffer* buffer, VektorPolygon* polygon,
+void vektor_polygon_tessellate(EdgeBuffer* buffer, VektorPolygon* polygon,
                              size_t j) {
     for (size_t i = 0; i + 1 < polygon->count; i++) {
         vektor_edgebuffer_add_edge(
@@ -30,6 +30,20 @@ void vektor_polygon_flatten(EdgeBuffer* buffer, VektorPolygon* polygon,
         buffer, (Edge){polygon->points[polygon->count - 1], polygon->points[0], 0, j});
 }
 
+void vektor_rectangle_tessellate(EdgeBuffer* buffer, VektorRectangle* rct, size_t j) {
+    if (vec2_equals(rct->end, rct->start)) {return;}
+
+    Edge top = (Edge){rct->start, (V2){rct->end.x, rct->start.y}, 0, j };
+    Edge right = (Edge){(V2){rct->end.x, rct->start.y}, rct->end, 0, j};
+    Edge bottom = (Edge){(V2){rct->start.x, rct->end.y}, rct->end, 0, j};
+    Edge left = (Edge){rct->start, (V2){rct->start.x, rct->end.y}, 0, j };
+
+    vektor_edgebuffer_add_edge(buffer, top);
+    vektor_edgebuffer_add_edge(buffer, right);
+    vektor_edgebuffer_add_edge(buffer, bottom);
+    vektor_edgebuffer_add_edge(buffer, left);
+}
+
 void vektor_rasterize(VertexBuffer* vb, VektorShapeBuffer* shapes) {
     EdgeBuffer edges = {0};
     for (size_t i = 0; i < shapes->count; i++) {
@@ -37,11 +51,15 @@ void vektor_rasterize(VertexBuffer* vb, VektorShapeBuffer* shapes) {
 
         switch (p->kind) {
         case VEKTOR_POLYLINE:
-            vektor_polyline_flatten(&edges, p->polyline, i);
+            vektor_polyline_tessellate(&edges, p->polyline, i);
             break;
 
         case VEKTOR_POLYGON:
-            vektor_polygon_flatten(&edges, p->polygon, i);
+            vektor_polygon_tessellate(&edges, p->polygon, i);
+            break;
+
+        case VEKTOR_RECTANGLE:
+            vektor_rectangle_tessellate(&edges, &p->rectangle, i);
             break;
 
         default:

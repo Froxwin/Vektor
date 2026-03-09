@@ -21,6 +21,8 @@ static void appstate_set_tool(GtkButton* button, gpointer user_data) {
     button_tool_set_data* data = (button_tool_set_data*)user_data;
     data->state->selectedTool = data->tool;
 
+    g_print("%d", data->tool);
+
     // setting tool makes the sub-tools menu to close
     gtk_revealer_set_reveal_child(data->revealer, FALSE);
 
@@ -152,6 +154,30 @@ begin_click_dispatch:
         vektor_polygon_add_point(state->selectedShape->primitive.polygon, pos);
         vektor_shapes_update_bbox(state->shapeBuffer);
     }
+    else if (state->selectedTool == VektorRectangleTool) {
+
+        VektorRectangle* rect = vektor_rectangle_new();
+        VektorPrimitive rectPrimitive =
+            (VektorPrimitive){.kind = VEKTOR_RECTANGLE, .rectangle = *rect};
+        VektorStyle style = (VektorStyle){
+            .stroke_color = state->currentColor, .stroke_width = 0.01};
+        vektor_shapebuffer_add_shape(
+            state->shapeBuffer, vektor_shape_new(rectPrimitive, style, 0));
+
+        state->selectedShape =
+            &(state->shapeBuffer->shapes[state->shapeBuffer->count - 1]);
+
+        vektor_rectangle_free(rect);
+
+
+        vektor_rectangle_set_start(&state->selectedShape->primitive.rectangle, pos);
+        vektor_rectangle_set_end(
+            &state->selectedShape->primitive.rectangle, 
+            vec2_add(pos, (V2){0.1f,-0.1f})
+        );
+        //state->selectedShape = NULL;
+        vektor_shapes_update_bbox(state->shapeBuffer);
+    }
 }
 
 void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
@@ -164,6 +190,11 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     data_polygontool->state = stateOut;
     data_polygontool->tool = VektorPolygonTool;
     data_polygontool->revealer = wstate->workspaceRevealerShapes;
+
+    button_tool_set_data* data_rectangletool = malloc(sizeof(button_tool_set_data));
+    data_rectangletool->state = stateOut;
+    data_rectangletool->tool = VektorRectangleTool;
+    data_rectangletool->revealer = wstate->workspaceRevealerShapes;
 
     // populate appstate
     stateOut->shapeBuffer = malloc(sizeof(VektorShapeBuffer));
@@ -178,7 +209,7 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     g_signal_connect(G_OBJECT(wstate->workspaceButtonLinetool), "clicked",
                      G_CALLBACK(appstate_set_tool), data_linetool);
     g_signal_connect(G_OBJECT(wstate->workspaceButtonRecttool), "clicked",
-                     G_CALLBACK(appstate_set_tool), data_linetool);
+                     G_CALLBACK(appstate_set_tool), data_rectangletool);
     g_signal_connect(G_OBJECT(wstate->workspaceButtonCircletool), "clicked",
                      G_CALLBACK(appstate_set_tool), data_linetool);
     g_signal_connect(G_OBJECT(wstate->workspaceButtonPolygontool), "clicked",
