@@ -220,6 +220,13 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
 
     stateOut->shapeBuffer = malloc(sizeof(VektorShapeBuffer));
     *stateOut->shapeBuffer = (VektorShapeBuffer){0};
+
+    VektorCircle circ = (VektorCircle){.center = (V2){0, 0}, .radius = 0.3};
+    VektorShape shp = vektor_shape_new(
+        (VektorPrimitive){.kind = VEKTOR_CIRCLE, .circle = circ},
+        (VektorStyle){.stroke_color = stateOut->currentColor, 0.01}, 0);
+    vektor_shapebuffer_add_shape(stateOut->shapeBuffer, shp);
+
     stateOut->canvas = malloc(sizeof(VektorCanvas));
     stateOut->widgetState = wstate;
     stateOut->currentColor = vektor_color_solid(0, 0, 0);

@@ -59,6 +59,21 @@ void vektor_polygon_free(VektorPolygon* pg) {
     free(pg);
 }
 
+VektorCircle* vektor_circle_new(void) {
+    VektorCircle* circ = malloc(sizeof(VektorCircle));
+    circ->center = (V2){0, 0};
+    circ->radius = 0;
+    return circ;
+}
+
+void vektor_circle_set_center(VektorCircle* circle, V2 point) {
+    circle->center = point;
+}
+
+void vektor_circle_set_radius(VektorCircle* circle, double radius) {
+    circle->radius = radius;
+}
+
 VektorRectangle* vektor_rectangle_new(void) {
     VektorRectangle* rct = malloc(sizeof(VektorRectangle));
     rct->start = (V2){.x = 0, .y = 0};

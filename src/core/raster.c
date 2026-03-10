@@ -3,7 +3,10 @@
 #include "primitives.h"
 #include "src/core/vector.h"
 #include "stddef.h"
+#include <math.h>
 #include <stddef.h>
+
+#define PI 3.14159265358979323846
 
 void vektor_edgebuffer_add_edge(EdgeBuffer* buffer, Edge edge) {
     if (buffer->count >= buffer->capacity) {
@@ -14,7 +17,7 @@ void vektor_edgebuffer_add_edge(EdgeBuffer* buffer, Edge edge) {
 }
 
 void vektor_polyline_tessellate(EdgeBuffer* buffer, VektorPolyline* line,
-                                size_t j) {
+                                size_t j, double scale) {
     for (size_t i = 0; i + 1 < line->count; i++) {
         vektor_edgebuffer_add_edge(
             buffer, (Edge){line->points[i], line->points[i + 1], 0, j});
@@ -22,7 +25,7 @@ void vektor_polyline_tessellate(EdgeBuffer* buffer, VektorPolyline* line,
 }
 
 void vektor_polygon_tessellate(EdgeBuffer* buffer, VektorPolygon* polygon,
-                               size_t j) {
+                               size_t j, double scale) {
     for (size_t i = 0; i + 1 < polygon->count; i++) {
         vektor_edgebuffer_add_edge(
             buffer, (Edge){polygon->points[i], polygon->points[i + 1], 0, j});
@@ -32,8 +35,23 @@ void vektor_polygon_tessellate(EdgeBuffer* buffer, VektorPolygon* polygon,
         (Edge){polygon->points[polygon->count - 1], polygon->points[0], 0, j});
 }
 
+void vektor_circle_tessellate(EdgeBuffer* buffer, VektorCircle* circle,
+                              size_t j, double scale) {
+    double err = 0.000025;
+    size_t res = PI * sqrt((scale * circle->radius) / (2 * err));
+    for (size_t i = 0; i < res; i++) {
+        double theta1 = (2 * PI * i) / res;
+        double theta2 = (2 * PI * (i + 1)) / res;
+        V2 p1 = (V2){circle->center.x + circle->radius * cos(theta1),
+                     circle->center.y + circle->radius * sin(theta1)};
+        V2 p2 = (V2){circle->center.x + circle->radius * cos(theta2),
+                     circle->center.y + circle->radius * sin(theta2)};
+        vektor_edgebuffer_add_edge(buffer, (Edge){p1, p2, 0, j});
+    }
+}
+
 void vektor_rectangle_tessellate(EdgeBuffer* buffer, VektorRectangle* rct,
-                                 size_t j) {
+                                 size_t j, double scale) {
     if (vec2_equals(rct->end, rct->start)) {
         return;
     }
@@ -49,22 +67,27 @@ void vektor_rectangle_tessellate(EdgeBuffer* buffer, VektorRectangle* rct,
     vektor_edgebuffer_add_edge(buffer, left);
 }
 
-void vektor_rasterize(VertexBuffer* vb, VektorShapeBuffer* shapes) {
+void vektor_rasterize(VertexBuffer* vb, VektorShapeBuffer* shapes,
+                      double scale) {
     EdgeBuffer edges = {0};
     for (size_t i = 0; i < shapes->count; i++) {
         VektorPrimitive* p = &shapes->shapes[i].primitive;
 
         switch (p->kind) {
         case VEKTOR_POLYLINE:
-            vektor_polyline_tessellate(&edges, p->polyline, i);
+            vektor_polyline_tessellate(&edges, p->polyline, i, scale);
             break;
 
         case VEKTOR_POLYGON:
-            vektor_polygon_tessellate(&edges, p->polygon, i);
+            vektor_polygon_tessellate(&edges, p->polygon, i, scale);
+            break;
+
+        case VEKTOR_CIRCLE:
+            vektor_circle_tessellate(&edges, &p->circle, i, scale);
             break;
 
         case VEKTOR_RECTANGLE:
-            vektor_rectangle_tessellate(&edges, &p->rectangle, i);
+            vektor_rectangle_tessellate(&edges, &p->rectangle, i, scale);
             break;
 
         default:

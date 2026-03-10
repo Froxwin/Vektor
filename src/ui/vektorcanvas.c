@@ -138,7 +138,7 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
                        VektorCanvasRenderInfo* renderInfo) {
     vb.count = 0;
 
-    vektor_rasterize(&vb, renderInfo->shapes);
+    vektor_rasterize(&vb, renderInfo->shapes, 2);
     size_t shape_vertex_count =
         vb.count; // remember how many vertices belong to shapes
 

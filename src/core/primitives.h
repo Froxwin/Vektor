@@ -53,6 +53,10 @@ VektorPolygon* vektor_polygon_new(void);
 void vektor_polygon_add_point(VektorPolygon* pl, V2 point);
 void vektor_polygon_free(VektorPolygon* pl);
 
+VektorCircle* vektor_circle_new(void);
+void vektor_circle_set_center(VektorCircle* circle, V2 point);
+void vektor_circle_set_radius(VektorCircle* circle, double radius);
+
 VektorRectangle* vektor_rectangle_new(void);
 void vektor_rectangle_set_end(VektorRectangle* rct, V2 point);
 void vektor_rectangle_set_start(VektorRectangle* rct, V2 point);
@@ -77,6 +81,7 @@ typedef struct {
 
 VektorBBox vektor_polyline_get_bbox(VektorPrimitive prim);
 VektorBBox vektor_polygon_get_bbox(VektorPrimitive prim);
+VektorBBox vektor_circle_get_bbox(VektorPrimitive prim);
 VektorBBox vektor_rectangle_get_bbox(VektorPrimitive prim);
 
 VektorBBox vektor_primitive_get_bbox(VektorPrimitive prim);

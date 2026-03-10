@@ -24,11 +24,13 @@ typedef struct {
 void vektor_edgebuffer_add_edge(EdgeBuffer* edges, Edge edge);
 
 void vektor_polyline_tessellate(EdgeBuffer* edges, VektorPolyline* line,
-                                size_t i);
+                                size_t i, double scale);
 void vektor_polygon_tessellate(EdgeBuffer* buffer, VektorPolygon* polygon,
-                               size_t i);
+                               size_t i, double scale);
+void vektor_circle_tessellate(EdgeBuffer* buffer, VektorCircle* circle,
+                              size_t i, double scale);
 void vektor_rectangle_tessellate(EdgeBuffer* buffer, VektorRectangle* rct,
-                                 size_t i);
+                                 size_t i, double scale);
 
 typedef struct {
     V2 coords;
@@ -49,6 +51,7 @@ void vektor_edge_to_triangles(VertexBuffer* vb, Edge e,
                               VektorShapeBuffer* shape_buffer);
 void vektor_edges_to_triangles(VertexBuffer* vb, EdgeBuffer* edges,
                                VektorShapeBuffer* shape_buffer);
-void vektor_rasterize(VertexBuffer* vb, VektorShapeBuffer* shapes);
+void vektor_rasterize(VertexBuffer* vb, VektorShapeBuffer* shapes,
+                      double scale);
 
 #endif // RASTER_H_
