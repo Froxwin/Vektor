@@ -25,6 +25,8 @@ typedef struct VektorCanvasRenderInfo {
 
     // a pointer to appstate->selectedShape
     VektorShape** selectedShape;
+    float zoom;
+    float canvasTransform[16];
 } VektorCanvasRenderInfo;
 
 void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut,

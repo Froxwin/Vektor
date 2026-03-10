@@ -1,3 +1,4 @@
+#include "src/core/matrix.h"
 #include "src/ui/uicontroller.h"
 #include "stdlib.h"
 
@@ -232,6 +233,8 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     stateOut->currentColor = vektor_color_solid(0, 0, 0);
     stateOut->selectedShape = NULL;
     VektorCanvasRenderInfo* renderInfo = malloc(sizeof(VektorCanvasRenderInfo));
+    renderInfo->zoom = 1;
+    m33_to_gl4(m33_identity(), renderInfo->canvasTransform);
     renderInfo->selectedShape = &(stateOut->selectedShape);
     renderInfo->shapes = stateOut->shapeBuffer;
     renderInfo->startupTime = stateOut->startupTime;

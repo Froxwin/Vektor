@@ -22,4 +22,6 @@ M33 m33_inverse(const M33 m);
 
 V2 m33_transform(const M33 mat, const V2 v);
 
+void m33_to_gl4(const M33 m, float out[16]);
+
 #endif // MATRIX_H_

@@ -87,3 +87,25 @@ V2 m33_transform(const M33 mat, const V2 v) {
     return (V2){mat.m[0][0] * v.x + mat.m[0][1] * v.y + mat.m[0][2],
                 mat.m[1][0] * v.x + mat.m[1][1] * v.y + mat.m[1][2]};
 }
+
+void m33_to_gl4(const M33 m, float out[16]) {
+    out[0] = m.m[0][0];
+    out[1] = m.m[1][0];
+    out[2] = 0.0f;
+    out[3] = 0.0f;
+
+    out[4] = m.m[0][1];
+    out[5] = m.m[1][1];
+    out[6] = 0.0f;
+    out[7] = 0.0f;
+
+    out[8] = 0.0f;
+    out[9] = 0.0f;
+    out[10] = 1.0f;
+    out[11] = 0.0f;
+
+    out[12] = m.m[0][2];
+    out[13] = m.m[1][2];
+    out[14] = 0.0f;
+    out[15] = 1.0f;
+}

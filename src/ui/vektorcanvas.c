@@ -3,6 +3,7 @@
 #include "gtk/gtk.h"
 
 #include "../core/raster.h"
+#include "src/core/matrix.h"
 #include "src/core/primitives.h"
 #include "src/util/color.h"
 #include "uicontroller.h"
@@ -158,10 +159,10 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
     // PASS 1 - draw shape vertices
     glUseProgram(standard_shader_program);
 
-    float projectionMatrix[16] = {1, 0, 0, 0, 0, 1, 0, 0,
-                                  0, 0, 1, 0, 0, 0, 0, 1};
+    // float projectionMatrix[16] = {1, 0, 0, 0, 0, 1, 0, 0,
+    //                               0, 0, 1, 0, 0, 0, 0, 1};
     glUniformMatrix4fv(shader_standard_uProjMatrixLoc, 1, GL_FALSE,
-                       projectionMatrix);
+                       renderInfo->canvasTransform);
 
     glBindVertexArray(vao);
     glDisable(GL_CULL_FACE);
@@ -182,11 +183,8 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
 
         glUseProgram(selection_shader_program);
 
-        float projectionMatrix[16] = {1, 0, 0, 0, 0, 1, 0, 0,
-                                      0, 0, 1, 0, 0, 0, 0, 1};
-
         glUniformMatrix4fv(shader_selection_uProjMatrixLoc, 1, GL_FALSE,
-                           projectionMatrix);
+                           renderInfo->canvasTransform);
         glUniform1f(shader_selection_uTimeLoc, time);
         glUniform2f(shader_selection_uMinLoc, bbox.min.x, bbox.min.y);
         glUniform2f(shader_selection_uMaxLoc, bbox.max.x, bbox.max.y);
@@ -241,6 +239,30 @@ static void realize(GtkGLArea* area, gpointer user_data) {
     init_geometry();
 }
 
+static void on_scroll(GtkEventControllerScroll* controller, double dx,
+                      double dy, gpointer user_data) {
+    VektorCanvasRenderInfo* s = user_data;
+
+    GdkModifierType state = gtk_event_controller_get_current_event_state(
+        GTK_EVENT_CONTROLLER(controller));
+
+    if (state & GDK_CONTROL_MASK) {
+
+        if (dy < 0)
+            s->zoom *= 0.9f;
+        else if (dy > 0)
+            s->zoom *= 1.1f;
+
+        M33 mat = m33_scale(s->zoom, s->zoom);
+
+        m33_to_gl4(mat, s->canvasTransform);
+
+        GtkWidget* widget =
+            gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(controller));
+        gtk_gl_area_queue_render(GTK_GL_AREA(widget));
+    }
+}
+
 void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut,
                         VektorCanvasRenderInfo* renderInfo) {
     canvasOut->canvasWidget = state->workspaceCanvas;
@@ -258,4 +280,11 @@ void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut,
                      NULL);
     g_signal_connect(canvasOut->canvasWidget, "render", G_CALLBACK(render),
                      renderInfo);
+
+    GtkEventController* scroll =
+        gtk_event_controller_scroll_new(GTK_EVENT_CONTROLLER_SCROLL_VERTICAL);
+
+    gtk_widget_add_controller(GTK_WIDGET(canvasOut->canvasWidget), scroll);
+
+    g_signal_connect(scroll, "scroll", G_CALLBACK(on_scroll), renderInfo);
 }
