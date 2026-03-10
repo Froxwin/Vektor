@@ -23,8 +23,9 @@ typedef struct {
 
 void vektor_edgebuffer_add_edge(EdgeBuffer* edges, Edge edge);
 
-void vektor_polyline_flatten(EdgeBuffer* edges, VektorPolyline* line, size_t i);
-void vektor_polygon_flatten(EdgeBuffer* buffer, VektorPolygon* line, size_t i);
+void vektor_polyline_tessellate(EdgeBuffer* edges, VektorPolyline* line, size_t i);
+void vektor_polygon_tessellate(EdgeBuffer* buffer, VektorPolygon* polygon, size_t i);
+void vektor_rectangle_tessellate(EdgeBuffer* buffer, VektorRectangle* rct, size_t i);
 
 typedef struct {
     V2 coords;
@@ -37,7 +38,9 @@ typedef struct {
     size_t capacity;
 } VertexBuffer;
 
-void vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2, VektorColor color);
+void vektor_vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2, VektorColor color);
+void vektor_vb_add_quad(VertexBuffer* vb, V2 v0, V2 v1, VektorColor color);
+
 void vektor_edge_to_triangles(VertexBuffer* vb, Edge e,
                               VektorShapeBuffer* shape_buffer);
 void vektor_edges_to_triangles(VertexBuffer* vb, EdgeBuffer* edges,

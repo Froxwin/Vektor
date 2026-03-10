@@ -6,12 +6,16 @@
 #include "../ui/vektorcanvas.h"
 #include "src/core/raster.h"
 
-typedef enum VektorAppTool { 
+typedef enum VektorAppTool {
+    VektorSelectionTool,
     VektorLineTool,
     VektorPolygonTool,
+    VektorRectangleTool
 } VektorAppTool;
 
 typedef struct VektorAppState {
+    gint64 startupTime;
+
     VektorWidgetState* widgetState;
 
     VektorAppTool selectedTool;

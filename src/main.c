@@ -1,3 +1,4 @@
+#include "glib.h"
 #include "gtk/gtk.h"
 #include "src/application/applicationstate.h"
 #include "src/core/primitives.h"
@@ -14,6 +15,13 @@ static void on_map(GtkWidget* window, gpointer user_data) {
     vektor_uictrl_map((VektorWidgetState*)user_data);
 }
 
+static int update_callback(gpointer data) {
+    VektorAppState* appstate = (VektorAppState*)data;
+    gtk_gl_area_queue_render(
+        GTK_GL_AREA(appstate->widgetState->workspaceCanvas));
+    return G_SOURCE_CONTINUE;
+}
+
 static void activate(GtkApplication* app, gpointer user_data) {
 
     VektorWidgetState* widget_state =
@@ -24,6 +32,8 @@ static void activate(GtkApplication* app, gpointer user_data) {
 
     g_signal_connect(widget_state->window, "map", G_CALLBACK(on_map),
                      widget_state);
+
+    g_timeout_add(1, update_callback, app_state);
 
     gtk_window_present(widget_state->window);
 }

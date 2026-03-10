@@ -1,8 +1,10 @@
 #include "epoxy/gl.h"
+#include "glib.h"
 #include "gtk/gtk.h"
 
 #include "../core/raster.h"
 #include "src/core/primitives.h"
+#include "src/util/color.h"
 #include "uicontroller.h"
 #include "vektorcanvas.h"
 #include <epoxy/gl_generated.h>
@@ -27,7 +29,19 @@ char* read_file(const char* path) {
     return buffer;
 }
 
-static GLuint shader_program;
+static GLuint standard_shader_program;
+static GLuint selection_shader_program;
+
+// shader uniforms
+static GLuint shader_standard_uProjMatrixLoc;
+
+static GLuint shader_selection_uProjMatrixLoc;
+static GLuint shader_selection_uTimeLoc;
+static GLuint shader_selection_uC1Loc;
+static GLuint shader_selection_uC2Loc;
+static GLuint shader_selection_uMinLoc;
+static GLuint shader_selection_uMaxLoc;
+
 static GLuint vao;
 VertexBuffer vb;
 
@@ -46,17 +60,11 @@ static GLuint compile_shader(GLenum type, const char* src) {
     return shader;
 }
 
-static void init_shader(void) {
-    char* vert_src = read_file("./shaders/triangle.vert.glsl");
-    char* frag_src = read_file("./shaders/triangle.frag.glsl");
+static GLuint create_shader_program(char* frag, char* vert) {
+    GLuint vertex = compile_shader(GL_VERTEX_SHADER, vert);
+    GLuint fragment = compile_shader(GL_FRAGMENT_SHADER, frag);
 
-    if (!vert_src || !frag_src)
-        g_error("Failed to load shader files");
-
-    GLuint vertex = compile_shader(GL_VERTEX_SHADER, vert_src);
-    GLuint fragment = compile_shader(GL_FRAGMENT_SHADER, frag_src);
-
-    shader_program = glCreateProgram();
+    GLuint shader_program = glCreateProgram();
     glAttachShader(shader_program, vertex);
     glAttachShader(shader_program, fragment);
     glLinkProgram(shader_program);
@@ -71,6 +79,32 @@ static void init_shader(void) {
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);
+
+    return shader_program;
+}
+
+static void init_shader(void) {
+    char* vert_src = read_file("./shaders/triangle.vert.glsl");
+    char* frag_src = read_file("./shaders/triangle.frag.glsl");
+    char* selection_frag_src = read_file("./shaders/selection.frag.glsl");
+
+    if (!vert_src || !frag_src)
+        g_error("Failed to load shader files");
+
+    standard_shader_program = create_shader_program(frag_src, vert_src);
+    selection_shader_program = create_shader_program(selection_frag_src, vert_src);
+
+    shader_standard_uProjMatrixLoc = glGetUniformLocation(standard_shader_program, "uProjection");
+    shader_selection_uProjMatrixLoc = glGetUniformLocation(selection_shader_program, "uProjection");
+    shader_selection_uTimeLoc = glGetUniformLocation(selection_shader_program, "uTime");
+    shader_selection_uC1Loc = glGetUniformLocation(selection_shader_program, "uColor1");
+    shader_selection_uC2Loc = glGetUniformLocation(selection_shader_program, "uColor2");
+
+    shader_selection_uMinLoc = glGetUniformLocation(selection_shader_program, "uMin");
+    shader_selection_uMaxLoc = glGetUniformLocation(selection_shader_program, "uMax");
+
+    if (shader_selection_uMinLoc == -1 || shader_selection_uMaxLoc == -1)
+        g_warning("Selection shader: uMin/uMax uniform not found in shader!");
 }
 
 static void init_geometry(void) {
@@ -92,32 +126,70 @@ static void init_geometry(void) {
 
     glBindVertexArray(0);
 }
-static gboolean render(GtkGLArea* area, GdkGLContext* context,
-                       VektorShapeBuffer* prims) {
-    
+static gboolean render(GtkGLArea* a, GdkGLContext* ctx, VektorCanvasRenderInfo* renderInfo) {
     vb.count = 0;
-    vektor_rasterize(&vb, prims);
+
+    vektor_rasterize(&vb, renderInfo->shapes);
+    size_t shape_vertex_count = vb.count; // remember how many vertices belong to shapes
+
+    // create selection quad if a shape is selected
+    if(renderInfo->selectedShape != NULL && 
+        *(renderInfo->selectedShape) != NULL) {
+        VektorBBox bbox = vektor_primitive_get_bbox(
+            (*(renderInfo->selectedShape))->primitive
+        );
+        
+        vektor_vb_add_quad(
+            &vb, 
+            bbox.min, 
+            bbox.max, 
+            vektor_color_new(255,255,255,255)
+        );
+    }
 
     glBufferData(GL_ARRAY_BUFFER, vb.count * sizeof(Vertex), vb.vertices,
                  GL_STATIC_DRAW);
 
-    glUseProgram(shader_program);
 
-    GLuint uProjectionLoc = glGetUniformLocation(shader_program, "uProjection");
+    // PASS 1 - draw shape vertices
+    glUseProgram(standard_shader_program);
+
     float projectionMatrix[16] = {1, 0, 0, 0, 0, 1, 0, 0,
                                   0, 0, 1, 0, 0, 0, 0, 1};
-    glUniformMatrix4fv(uProjectionLoc, 1, GL_FALSE, projectionMatrix);
+    glUniformMatrix4fv(shader_standard_uProjMatrixLoc, 1, GL_FALSE, projectionMatrix);
 
     glBindVertexArray(vao);
     glDisable(GL_CULL_FACE);
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glDrawArrays(GL_TRIANGLES, 0, vb.count);
-    GLenum err = glGetError();
-    //printf("OpenGL error: %x\n", err);
-    // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, shape_vertex_count);
+
+    // PASS 2 - draw selection quads
+    if (vb.count > shape_vertex_count) {
+        float time = (g_get_monotonic_time() - renderInfo->startupTime) / 10000000.0f;
+
+        // re-fetch bbox (we know a shape is selected)
+        VektorBBox bbox = vektor_primitive_get_bbox(
+            (*(renderInfo->selectedShape))->primitive
+        );
+
+        glUseProgram(selection_shader_program);
+
+        float projectionMatrix[16] = {1, 0, 0, 0, 0, 1, 0, 0,
+                                    0, 0, 1, 0, 0, 0, 0, 1};
+
+        glUniformMatrix4fv(shader_selection_uProjMatrixLoc, 1, GL_FALSE, projectionMatrix);
+        glUniform1f(shader_selection_uTimeLoc, time);
+        glUniform2f(shader_selection_uMinLoc, bbox.min.x, bbox.min.y);
+        glUniform2f(shader_selection_uMaxLoc, bbox.max.x, bbox.max.y);
+        glUniform4f(shader_selection_uC1Loc, 0, 0, 0, 1);
+        glUniform4f(shader_selection_uC2Loc, 0.46, 0.46, 1, 1);
+
+        glDrawArrays(GL_TRIANGLES, shape_vertex_count, vb.count - shape_vertex_count);
+    }
+
     glBindVertexArray(0);
     glUseProgram(0);
 
@@ -163,7 +235,7 @@ static void realize(GtkGLArea* area, gpointer user_data) {
 }
 
 void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut,
-                        VektorShapeBuffer* prims) {
+                        VektorCanvasRenderInfo* renderInfo) {
     canvasOut->canvasWidget = state->workspaceCanvas;
     canvasOut->width = VKTR_CANVAS_WIDTH;
     canvasOut->height = VKTR_CANVAS_HEIGHT;
@@ -178,5 +250,5 @@ void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut,
     g_signal_connect(canvasOut->canvasWidget, "realize", G_CALLBACK(realize),
                      NULL);
     g_signal_connect(canvasOut->canvasWidget, "render", G_CALLBACK(render),
-                     prims);
+                     renderInfo);
 }

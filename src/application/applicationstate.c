@@ -22,10 +22,16 @@ static void appstate_set_tool(GtkButton* button, gpointer user_data) {
     data->state->selectedTool = data->tool;
 
     // setting tool makes the sub-tools menu to close
-    gtk_revealer_set_reveal_child(data->revealer, FALSE);
+    // (ADD NEW REVEALERS HERE)
+    gtk_revealer_set_reveal_child(
+        data->state->widgetState->workspaceRevealerShapes, 
+        FALSE
+    );
 
     // setting tool also resets selected shape
-    data->state->selectedShape = NULL;
+    // NOTE: isn't needed anymore, as you would
+    // want to be able to select & edit existing shapes
+    //data->state->selectedShape = NULL;
 }
 
 static void appstate_reveal_subtools(GtkButton* button, gpointer user_data) {
@@ -56,8 +62,8 @@ static void appstate_on_color_change(VektorColorWheel* wheel,
     gtk_editable_set_text(GTK_EDITABLE(appstate->widgetState->sidepanelEntryB),
                           str_b);
 
-    gtk_gl_area_queue_render(
-        GTK_GL_AREA(appstate->widgetState->workspaceCanvas));
+    /*gtk_gl_area_queue_render(
+        GTK_GL_AREA(appstate->widgetState->workspaceCanvas));*/
 }
 
 static void appstate_on_entry_update(GtkEntry* entry, gpointer user_data) {
@@ -69,7 +75,6 @@ static void appstate_on_entry_update(GtkEntry* entry, gpointer user_data) {
     unsigned char b = (unsigned char)atoi(
         gtk_editable_get_text(GTK_EDITABLE(widgetState->sidepanelEntryB)));
 
-    g_print("%d", r);
     vektor_color_wheel_set_color(
         VEKTOR_COLOR_WHEEL(widgetState->workspaceColorPicker),
         (VektorColor){.r = r, .g = g, .b = b});
@@ -94,7 +99,8 @@ static void canvas_onclick(GtkGestureClick* gesture, int n_press, double x,
 
     vektor_appstate_canvas_click(state, normalized_coords.x,
                                  normalized_coords.y);
-    gtk_gl_area_queue_render(GTK_GL_AREA(widget));
+
+    //gtk_gl_area_queue_render(GTK_GL_AREA(widget));
 }
 
 void vektor_appstate_canvas_click(VektorAppState* state, double x, double y) {
@@ -152,6 +158,43 @@ begin_click_dispatch:
         vektor_polygon_add_point(state->selectedShape->primitive.polygon, pos);
         vektor_shapes_update_bbox(state->shapeBuffer);
     }
+    else if (state->selectedTool == VektorRectangleTool) {
+
+        VektorRectangle* rect = vektor_rectangle_new();
+        VektorPrimitive rectPrimitive =
+            (VektorPrimitive){.kind = VEKTOR_RECTANGLE, .rectangle = *rect};
+        VektorStyle style = (VektorStyle){
+            .stroke_color = state->currentColor, .stroke_width = 0.01};
+        vektor_shapebuffer_add_shape(
+            state->shapeBuffer, vektor_shape_new(rectPrimitive, style, 0));
+
+        state->selectedShape =
+            &(state->shapeBuffer->shapes[state->shapeBuffer->count - 1]);
+
+        vektor_rectangle_free(rect);
+
+
+        vektor_rectangle_set_start(&state->selectedShape->primitive.rectangle, pos);
+        vektor_rectangle_set_end(
+            &state->selectedShape->primitive.rectangle, 
+            vec2_add(pos, (V2){0.1f,0.1f})
+        );
+        //state->selectedShape = NULL;
+        vektor_shapes_update_bbox(state->shapeBuffer);
+    }
+    else if (state->selectedTool == VektorSelectionTool) {
+        for(size_t i = 0; i < state->shapeBuffer->count; i++) {
+            VektorBBox bbox = 
+                vektor_primitive_get_bbox(state->shapeBuffer->shapes[i].primitive);
+            if(vektor_bbox_isinside(bbox, pos)) {
+                state->selectedShape = &(state->shapeBuffer->shapes[i]);
+                g_print("%d", state->selectedShape == NULL);
+                return;
+            }
+        }
+        // was clicked outside any shapes - reset selection
+        state->selectedShape = NULL;
+    }
 }
 
 void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
@@ -165,24 +208,41 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     data_polygontool->tool = VektorPolygonTool;
     data_polygontool->revealer = wstate->workspaceRevealerShapes;
 
+    button_tool_set_data* data_rectangletool = malloc(sizeof(button_tool_set_data));
+    data_rectangletool->state = stateOut;
+    data_rectangletool->tool = VektorRectangleTool;
+    data_rectangletool->revealer = wstate->workspaceRevealerShapes;
+
+    button_tool_set_data* data_selecttool = malloc(sizeof(button_tool_set_data));
+    data_selecttool->state = stateOut;
+    data_selecttool->tool = VektorSelectionTool;
+
     // populate appstate
+    stateOut->startupTime = g_get_monotonic_time();
+
     stateOut->shapeBuffer = malloc(sizeof(VektorShapeBuffer));
     *stateOut->shapeBuffer = (VektorShapeBuffer){0};
     stateOut->canvas = malloc(sizeof(VektorCanvas));
     stateOut->widgetState = wstate;
     stateOut->currentColor = vektor_color_solid(0, 0, 0);
     stateOut->selectedShape = NULL;
-    vektor_canvas_init(wstate, stateOut->canvas, stateOut->shapeBuffer);
+    VektorCanvasRenderInfo* renderInfo = malloc(sizeof(VektorCanvasRenderInfo));
+    renderInfo->selectedShape = &(stateOut->selectedShape);
+    renderInfo->shapes = stateOut->shapeBuffer;
+    renderInfo->startupTime = stateOut->startupTime;
+    vektor_canvas_init(wstate, stateOut->canvas, renderInfo);
 
     // link all the buttons
-    g_signal_connect(G_OBJECT(wstate->workspaceButtonLinetool), "clicked",
+    g_signal_connect(G_OBJECT(wstate->workspaceButtonLineTool), "clicked",
                      G_CALLBACK(appstate_set_tool), data_linetool);
-    g_signal_connect(G_OBJECT(wstate->workspaceButtonRecttool), "clicked",
+    g_signal_connect(G_OBJECT(wstate->workspaceButtonRectTool), "clicked",
+                     G_CALLBACK(appstate_set_tool), data_rectangletool);
+    g_signal_connect(G_OBJECT(wstate->workspaceButtonCircleTool), "clicked",
                      G_CALLBACK(appstate_set_tool), data_linetool);
-    g_signal_connect(G_OBJECT(wstate->workspaceButtonCircletool), "clicked",
-                     G_CALLBACK(appstate_set_tool), data_linetool);
-    g_signal_connect(G_OBJECT(wstate->workspaceButtonPolygontool), "clicked",
+    g_signal_connect(G_OBJECT(wstate->workspaceButtonPolygonTool), "clicked",
                      G_CALLBACK(appstate_set_tool), data_polygontool);
+    g_signal_connect(G_OBJECT(wstate->workspaceButtonSelectionTool), "clicked",
+                     G_CALLBACK(appstate_set_tool), data_selecttool);
 
     // hook subtool revealers to their master buttons
     g_signal_connect(G_OBJECT(wstate->workspaceButtonMasterShapes), "clicked",

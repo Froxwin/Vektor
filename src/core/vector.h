@@ -22,6 +22,10 @@ static inline V2 vec2_add(const V2 v1, const V2 v2) {
     return (V2){v1.x + v2.x, v1.y + v2.y};
 }
 
+static inline bool vec2_equals(const V2 v1, const V2 v2) {
+    return (bool)(v1.x == v2.x && v1.y == v2.x);
+}
+
 static inline V2 vec2_sub(const V2 v1, const V2 v2) {
     return (V2){v1.x - v2.x, v1.y - v2.y};
 }
