@@ -27,7 +27,7 @@ typedef struct VektorAppState {
     VektorShapeBuffer* shapeBuffer;
     // View space
     VektorCanvas* canvas;
-
+    VektorCanvasRenderInfo* renderInfo;
 } VektorAppState;
 
 void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut);

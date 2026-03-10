@@ -103,7 +103,8 @@ static void canvas_onclick(GtkGestureClick* gesture, int n_press, double x,
 }
 
 void vektor_appstate_canvas_click(VektorAppState* state, double x, double y) {
-    V2 pos = (V2){x, y};
+    V2 pos =
+        m33_transform(m33_inverse(state->renderInfo->canvasMat), (V2){x, y});
 
 begin_click_dispatch:
     if (state->selectedTool == VektorLineTool) {
@@ -234,12 +235,16 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     stateOut->selectedShape = NULL;
     VektorCanvasRenderInfo* renderInfo = malloc(sizeof(VektorCanvasRenderInfo));
     renderInfo->zoom = 1;
+    renderInfo->panX = 0;
+    renderInfo->panY = 0;
+    renderInfo->rotation = 0;
     m33_to_gl4(m33_identity(), renderInfo->canvasTransform);
     renderInfo->selectedShape = &(stateOut->selectedShape);
     renderInfo->shapes = stateOut->shapeBuffer;
     renderInfo->startupTime = stateOut->startupTime;
+    renderInfo->canvasMat = m33_identity();
     vektor_canvas_init(wstate, stateOut->canvas, renderInfo);
-
+    stateOut->renderInfo = renderInfo;
     // link all the buttons
     g_signal_connect(G_OBJECT(wstate->workspaceButtonLineTool), "clicked",
                      G_CALLBACK(appstate_set_tool), data_linetool);

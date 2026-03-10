@@ -4,6 +4,7 @@
 #include "../core/raster.h"
 #include "../util/color.h"
 #include "gtk/gtk.h"
+#include "src/core/matrix.h"
 #include "src/core/primitives.h"
 #include "uicontroller.h"
 
@@ -26,6 +27,18 @@ typedef struct VektorCanvasRenderInfo {
     // a pointer to appstate->selectedShape
     VektorShape** selectedShape;
     float zoom;
+    float panX;
+    float panY;
+    float rotation;
+
+    float dragStartRotation;
+    double dragStartAngle;
+    double drag_start_x;
+    double drag_start_y;
+    double mouse_start_x;
+    double mouse_start_y;
+
+    M33 canvasMat;
     float canvasTransform[16];
 } VektorCanvasRenderInfo;
 

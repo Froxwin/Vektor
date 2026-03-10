@@ -246,21 +246,98 @@ static void on_scroll(GtkEventControllerScroll* controller, double dx,
     GdkModifierType state = gtk_event_controller_get_current_event_state(
         GTK_EVENT_CONTROLLER(controller));
 
-    if (state & GDK_CONTROL_MASK) {
+    // if (state & GDK_CONTROL_MASK) {
 
-        if (dy < 0)
-            s->zoom *= 0.9f;
-        else if (dy > 0)
-            s->zoom *= 1.1f;
+    if (dy < 0)
+        s->zoom *= 1.1f;
+    else if (dy > 0)
+        s->zoom *= 0.9f;
 
-        M33 mat = m33_scale(s->zoom, s->zoom);
+    M33 mat =
+        m33_mul(m33_translate(s->panX, s->panY),
+                m33_mul(m33_rotate(s->rotation), m33_scale(s->zoom, s->zoom)));
+    // M33 mat = m33_mul(m33_mul(m33_scale(s->zoom, s->zoom),
+    //                           m33_translate(s->panX, s->panY)),
+    //                   m33_rotate(s->rotation));
+    m33_to_gl4(mat, s->canvasTransform);
+    s->canvasMat = mat;
 
-        m33_to_gl4(mat, s->canvasTransform);
+    GtkWidget* widget =
+        gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(controller));
+    gtk_gl_area_queue_render(GTK_GL_AREA(widget));
+    // }
+}
 
-        GtkWidget* widget =
-            gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(controller));
-        gtk_gl_area_queue_render(GTK_GL_AREA(widget));
+static void on_pan_begin(GtkGestureDrag* gesture, double start_x,
+                         double start_y, gpointer user_data) {
+    VektorCanvasRenderInfo* s = user_data;
+
+    GdkModifierType state = gtk_event_controller_get_current_event_state(
+        GTK_EVENT_CONTROLLER(gesture));
+
+    if (!(state & GDK_SHIFT_MASK)) {
+        s->drag_start_x = s->panX;
+        s->drag_start_y = s->panY;
+    } else {
+        double x, y;
+        gtk_gesture_drag_get_start_point(gesture, &x, &y);
+
+        s->mouse_start_x = x;
+        s->mouse_start_y = y;
+
+        double cx = VKTR_CANVAS_WIDTH * 0.5;
+        double cy = VKTR_CANVAS_HEIGHT * 0.5;
+
+        double dx = x - cx;
+        double dy = y - cy;
+
+        s->dragStartAngle = atan2(dy, dx);
+        s->dragStartRotation = s->rotation;
     }
+}
+
+static void on_pan_drag(GtkGestureDrag* gesture, double offset_x,
+                        double offset_y, gpointer user_data) {
+    VektorCanvasRenderInfo* s = user_data;
+
+    GdkModifierType state = gtk_event_controller_get_current_event_state(
+        GTK_EVENT_CONTROLLER(gesture));
+
+    if (!(state & GDK_SHIFT_MASK)) {
+        s->panX = s->drag_start_x + offset_x / (80 * s->zoom);
+        s->panY = s->drag_start_y - offset_y / (80 * s->zoom);
+
+        M33 mat = m33_mul(
+            m33_translate(s->panX, s->panY),
+            m33_mul(m33_rotate(s->rotation), m33_scale(s->zoom, s->zoom)));
+        m33_to_gl4(mat, s->canvasTransform);
+        s->canvasMat = mat;
+    } else {
+        double x, y;
+        gtk_gesture_drag_get_offset(gesture, &x, &y);
+
+        double mx = s->mouse_start_x + x;
+        double my = s->mouse_start_y + y;
+
+        double cx = VKTR_CANVAS_WIDTH * 0.5;
+        double cy = VKTR_CANVAS_HEIGHT * 0.5;
+
+        double dx = mx - cx;
+        double dy = my - cy;
+
+        double angle = -atan2(dy, dx);
+
+        s->rotation = s->dragStartRotation + (angle - s->dragStartAngle);
+
+        M33 mat = m33_mul(
+            m33_translate(s->panX, s->panY),
+            m33_mul(m33_rotate(s->rotation), m33_scale(s->zoom, s->zoom)));
+        m33_to_gl4(mat, s->canvasTransform);
+        s->canvasMat = mat;
+    }
+    GtkWidget* widget =
+        gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(gesture));
+    gtk_gl_area_queue_render(GTK_GL_AREA(widget));
 }
 
 void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut,
@@ -287,4 +364,13 @@ void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut,
     gtk_widget_add_controller(GTK_WIDGET(canvasOut->canvasWidget), scroll);
 
     g_signal_connect(scroll, "scroll", G_CALLBACK(on_scroll), renderInfo);
+
+    GtkGesture* pan = gtk_gesture_drag_new();
+    gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(pan), GDK_BUTTON_MIDDLE);
+
+    gtk_widget_add_controller(GTK_WIDGET(canvasOut->canvasWidget),
+                              GTK_EVENT_CONTROLLER(pan));
+
+    g_signal_connect(pan, "drag-begin", G_CALLBACK(on_pan_begin), renderInfo);
+    g_signal_connect(pan, "drag-update", G_CALLBACK(on_pan_drag), renderInfo);
 }
