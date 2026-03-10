@@ -21,8 +21,6 @@ static void appstate_set_tool(GtkButton* button, gpointer user_data) {
     button_tool_set_data* data = (button_tool_set_data*)user_data;
     data->state->selectedTool = data->tool;
 
-    g_print("%d", data->tool);
-
     // setting tool makes the sub-tools menu to close
     gtk_revealer_set_reveal_child(data->revealer, FALSE);
 
@@ -71,7 +69,6 @@ static void appstate_on_entry_update(GtkEntry* entry, gpointer user_data) {
     unsigned char b = (unsigned char)atoi(
         gtk_editable_get_text(GTK_EDITABLE(widgetState->sidepanelEntryB)));
 
-    g_print("%d", r);
     vektor_color_wheel_set_color(
         VEKTOR_COLOR_WHEEL(widgetState->workspaceColorPicker),
         (VektorColor){.r = r, .g = g, .b = b});
@@ -203,7 +200,10 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     stateOut->widgetState = wstate;
     stateOut->currentColor = vektor_color_solid(0, 0, 0);
     stateOut->selectedShape = NULL;
-    vektor_canvas_init(wstate, stateOut->canvas, stateOut->shapeBuffer);
+    VektorCanvasRenderInfo* renderInfo = malloc(sizeof(VektorCanvasRenderInfo));
+    renderInfo->selectedShape = &(stateOut->selectedShape);
+    renderInfo->shapes = stateOut->shapeBuffer;
+    vektor_canvas_init(wstate, stateOut->canvas, renderInfo);
 
     // link all the buttons
     g_signal_connect(G_OBJECT(wstate->workspaceButtonLinetool), "clicked",

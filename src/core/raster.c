@@ -1,6 +1,7 @@
 #include "raster.h"
 #include "epoxy/gl.h"
 #include "primitives.h"
+#include "src/core/vector.h"
 #include "stddef.h"
 #include <stddef.h>
 
@@ -71,7 +72,7 @@ void vektor_rasterize(VertexBuffer* vb, VektorShapeBuffer* shapes) {
     vektor_edges_to_triangles(vb, &edges, shapes);
 }
 
-void vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2, VektorColor color) {
+void vektor_vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2, VektorColor color) {
     if (vb->count + 3 >= vb->capacity) {
         vb->capacity = vb->capacity ? vb->capacity * 2 : 8;
         vb->vertices = realloc(vb->vertices, sizeof(Vertex) * vb->capacity);
@@ -79,6 +80,22 @@ void vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2, VektorColor color) {
     vb->vertices[vb->count++] = (Vertex){v0, color};
     vb->vertices[vb->count++] = (Vertex){v1, color};
     vb->vertices[vb->count++] = (Vertex){v2, color};
+}
+
+void vektor_vb_add_quad(VertexBuffer* vb, V2 a, V2 b, VektorColor color) {
+
+    float minx = fminf(a.x, b.x);
+    float maxx = fmaxf(a.x, b.x);
+    float miny = fminf(a.y, b.y);
+    float maxy = fmaxf(a.y, b.y);
+
+    V2 tl = {minx, miny};
+    V2 bl = {minx, maxy};
+    V2 br = {maxx, maxy};
+    V2 tr = {maxx, miny};
+
+    vektor_vb_add_triangle(vb, tl, bl, br, color);
+    vektor_vb_add_triangle(vb, tl, br, tr, color);
 }
 
 void vektor_edge_to_triangles(VertexBuffer* vb, Edge e,
@@ -99,9 +116,9 @@ void vektor_edge_to_triangles(VertexBuffer* vb, Edge e,
     V2 v2 = {e.p2.x + px, e.p2.y + py};
     V2 v3 = {e.p2.x - px, e.p2.y - py};
 
-    vb_add_triangle(vb, v0, v1, v2,
+    vektor_vb_add_triangle(vb, v0, v1, v2,
                     shape_buffer->shapes[e.shape_id].style.stroke_color);
-    vb_add_triangle(vb, v2, v1, v3,
+    vektor_vb_add_triangle(vb, v2, v1, v3,
                     shape_buffer->shapes[e.shape_id].style.stroke_color);
 }
 

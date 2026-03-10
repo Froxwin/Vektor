@@ -91,15 +91,23 @@ VektorBBox vektor_polyline_get_bbox(VektorPrimitive prim) {
 }
 
 VektorBBox vektor_polygon_get_bbox(VektorPrimitive prim) {
-    float min_x, max_x, min_y, max_y;
-    for (size_t i = 0; i < prim.polygon->count; i++) {
+    V2 first = prim.polygon->points[0];
+
+    float min_x = first.x;
+    float max_x = first.x;
+    float min_y = first.y;
+    float max_y = first.y;
+
+    for (size_t i = 1; i < prim.polygon->count; i++) {
         V2 p = prim.polygon->points[i];
+
         min_x = fminf(min_x, p.x);
         min_y = fminf(min_y, p.y);
 
-        max_x = fminf(max_x, p.x);
-        max_y = fminf(max_y, p.y);
+        max_x = fmaxf(max_x, p.x);
+        max_y = fmaxf(max_y, p.y);
     }
+
     return (VektorBBox){(V2){min_x, min_y}, (V2){max_x, max_y}};
 }
 

@@ -7,9 +7,11 @@ layout (location = 1) in vec4 aColor;
 uniform mat4 uProjection;
 
 out vec4 vColor;
+out vec2 vPos;
 
 void main()
 {
     gl_Position = uProjection * vec4(aPos, 0.0, 1.0);
+    vPos = aPos;
     vColor = aColor;
 }

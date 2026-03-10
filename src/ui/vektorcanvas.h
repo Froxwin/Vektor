@@ -4,7 +4,9 @@
 #include "../core/raster.h"
 #include "../util/color.h"
 #include "gtk/gtk.h"
+#include "src/core/primitives.h"
 #include "uicontroller.h"
+
 
 typedef struct VektorCanvas {
     GtkGLArea* canvasWidget;
@@ -18,8 +20,15 @@ typedef struct VektorCanvas {
     int height;
 } VektorCanvas;
 
+typedef struct VektorCanvasRenderInfo {
+    VektorShapeBuffer* shapes;
+    
+    // a pointer to appstate->selectedShape
+    VektorShape** selectedShape;
+} VektorCanvasRenderInfo;
+
 void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut,
-                        VektorShapeBuffer* shapes);
+                        VektorCanvasRenderInfo* renderInfo);
 // void vektor_canvas_update(VektorCanvas* canvas);
 // void vektor_canvas_fill(VektorCanvas* canvas, VektorColor color);
 // void vektor_canvas_drawfrom(VektorFramebuffer* fb, VektorCanvas* canvas);

@@ -38,7 +38,9 @@ typedef struct {
     size_t capacity;
 } VertexBuffer;
 
-void vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2, VektorColor color);
+void vektor_vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2, VektorColor color);
+void vektor_vb_add_quad(VertexBuffer* vb, V2 v0, V2 v1, VektorColor color);
+
 void vektor_edge_to_triangles(VertexBuffer* vb, Edge e,
                               VektorShapeBuffer* shape_buffer);
 void vektor_edges_to_triangles(VertexBuffer* vb, EdgeBuffer* edges,
