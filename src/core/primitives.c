@@ -135,6 +135,11 @@ VektorBBox vektor_primitive_get_bbox(VektorPrimitive prim) {
     }
 }
 
+bool vektor_bbox_isinside(VektorBBox bbox, V2 point) {
+    return point.x >= bbox.min.x && point.y >= bbox.min.y
+        && point.x <= bbox.max.x && point.y <= bbox.max.y;
+}
+
 VektorShape vektor_shape_new(VektorPrimitive prim, VektorStyle style,
                              int z_index) {
     return (VektorShape){.primitive = prim, .style = style, .z_index = z_index, .bbox=vektor_primitive_get_bbox(prim)};

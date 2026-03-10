@@ -65,6 +65,14 @@
 
                                         <!--Tool buttons-->
 
+                                        <!--Select tool-->
+                                        <child>
+                                            <object class="GtkButton" id="button_selecttool">
+                                                <property name="icon-name">tool-select-symbolic</property>
+                                                <property name="halign">start</property>
+                                            </object>
+                                        </child>
+
                                         <!--Shape tool (row container)-->
                                         <child>
                                             <object class="GtkBox">

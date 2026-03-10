@@ -80,6 +80,7 @@ VektorBBox vektor_polygon_get_bbox(VektorPrimitive prim);
 VektorBBox vektor_rectangle_get_bbox(VektorPrimitive prim);
 
 VektorBBox vektor_primitive_get_bbox(VektorPrimitive prim);
+bool vektor_bbox_isinside(VektorBBox bbox, V2 point);
 
 VektorShape vektor_shape_new(VektorPrimitive prim, VektorStyle style,
                              int z_index);

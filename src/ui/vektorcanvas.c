@@ -138,8 +138,6 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx, VektorCanvasRenderInfo* 
         VektorBBox bbox = vektor_primitive_get_bbox(
             (*(renderInfo->selectedShape))->primitive
         );
-
-        g_print("min: %f %f max: %f %f\n", bbox.min.x, bbox.min.y, bbox.max.x, bbox.max.y);
         
         vektor_vb_add_quad(
             &vb, 
@@ -184,8 +182,8 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx, VektorCanvasRenderInfo* 
 
         glUniformMatrix4fv(shader_selection_uProjMatrixLoc, 1, GL_FALSE, projectionMatrix);
         glUniform1f(shader_selection_uTimeLoc, time);
-        glUniform2f(shader_selection_uMinLoc, bbox.min.x, bbox.min.y);   // ← this was missing/broken
-        glUniform2f(shader_selection_uMaxLoc, bbox.max.x, bbox.max.y);   // ← this was missing/broken
+        glUniform2f(shader_selection_uMinLoc, bbox.min.x, bbox.min.y);
+        glUniform2f(shader_selection_uMaxLoc, bbox.max.x, bbox.max.y);
         glUniform4f(shader_selection_uC1Loc, 0, 0, 0, 1);
         glUniform4f(shader_selection_uC2Loc, 0.46, 0.46, 1, 1);
 

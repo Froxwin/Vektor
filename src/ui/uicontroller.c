@@ -50,14 +50,16 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
         GTK_BUTTON(gtk_builder_get_object(builder, "button_shapetools"));
     stateOut->workspaceRevealerShapes =
         GTK_REVEALER(gtk_builder_get_object(builder, "shape_revealer"));
-    stateOut->workspaceButtonLinetool =
+    stateOut->workspaceButtonLineTool =
         GTK_BUTTON(gtk_builder_get_object(builder, "button_linetool"));
-    stateOut->workspaceButtonRecttool =
+    stateOut->workspaceButtonRectTool =
         GTK_BUTTON(gtk_builder_get_object(builder, "button_rectangletool"));
-    stateOut->workspaceButtonCircletool =
+    stateOut->workspaceButtonCircleTool =
         GTK_BUTTON(gtk_builder_get_object(builder, "button_circletool"));
-    stateOut->workspaceButtonPolygontool =
+    stateOut->workspaceButtonPolygonTool =
         GTK_BUTTON(gtk_builder_get_object(builder, "button_polygontool"));
+    stateOut->workspaceButtonSelectionTool =
+        GTK_BUTTON(gtk_builder_get_object(builder, "button_selecttool"));
     stateOut->workspaceColorPicker =
         VEKTOR_COLOR_WHEEL(gtk_builder_get_object(builder, "color_picker"));
 

@@ -17,10 +17,11 @@ typedef struct VektorWidgetState {
 
     GtkButton* workspaceButtonMasterShapes;
     GtkRevealer* workspaceRevealerShapes;
-    GtkButton* workspaceButtonLinetool;
-    GtkButton* workspaceButtonRecttool;
-    GtkButton* workspaceButtonCircletool;
-    GtkButton* workspaceButtonPolygontool;
+    GtkButton* workspaceButtonLineTool;
+    GtkButton* workspaceButtonRectTool;
+    GtkButton* workspaceButtonCircleTool;
+    GtkButton* workspaceButtonPolygonTool;
+    GtkButton* workspaceButtonSelectionTool;
 
     VektorColorWheel* workspaceColorPicker;
 

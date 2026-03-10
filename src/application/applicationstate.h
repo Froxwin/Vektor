@@ -6,7 +6,8 @@
 #include "../ui/vektorcanvas.h"
 #include "src/core/raster.h"
 
-typedef enum VektorAppTool { 
+typedef enum VektorAppTool {
+    VektorSelectionTool,
     VektorLineTool,
     VektorPolygonTool,
     VektorRectangleTool
