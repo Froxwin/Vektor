@@ -14,6 +14,8 @@ typedef enum VektorAppTool {
 } VektorAppTool;
 
 typedef struct VektorAppState {
+    gint64 startupTime;
+
     VektorWidgetState* widgetState;
 
     VektorAppTool selectedTool;

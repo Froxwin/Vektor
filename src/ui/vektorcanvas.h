@@ -21,6 +21,7 @@ typedef struct VektorCanvas {
 } VektorCanvas;
 
 typedef struct VektorCanvasRenderInfo {
+    gint64 startupTime;
     VektorShapeBuffer* shapes;
     
     // a pointer to appstate->selectedShape

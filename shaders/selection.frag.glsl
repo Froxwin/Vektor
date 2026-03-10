@@ -26,11 +26,11 @@ void main()
     float gap_length  = 0.015;
     float total       = dash_length + gap_length;
 
-    float speed       = 1.8;
+    float speed       = 0.3;
 
     float distance_along = (vPos.x + vPos.y) * 20.0;
 
-    float t = mod(distance_along * total, total);
+    float t = mod( distance_along * total + uTime * speed, total);
 
     if (t < dash_length)
         FragColor = uColor2;

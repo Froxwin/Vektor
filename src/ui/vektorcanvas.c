@@ -168,7 +168,7 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx, VektorCanvasRenderInfo* 
 
     // PASS 2 - draw selection quads
     if (vb.count > shape_vertex_count) {
-        float time = g_get_monotonic_time() / 1000000.0f;
+        float time = (g_get_monotonic_time() - renderInfo->startupTime) / 10000000.0f;
 
         // re-fetch bbox (we know a shape is selected)
         VektorBBox bbox = vektor_primitive_get_bbox(

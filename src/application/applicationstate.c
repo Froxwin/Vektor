@@ -29,7 +29,9 @@ static void appstate_set_tool(GtkButton* button, gpointer user_data) {
     );
 
     // setting tool also resets selected shape
-    data->state->selectedShape = NULL;
+    // NOTE: isn't needed anymore, as you would
+    // want to be able to select & edit existing shapes
+    //data->state->selectedShape = NULL;
 }
 
 static void appstate_reveal_subtools(GtkButton* button, gpointer user_data) {
@@ -60,8 +62,8 @@ static void appstate_on_color_change(VektorColorWheel* wheel,
     gtk_editable_set_text(GTK_EDITABLE(appstate->widgetState->sidepanelEntryB),
                           str_b);
 
-    gtk_gl_area_queue_render(
-        GTK_GL_AREA(appstate->widgetState->workspaceCanvas));
+    /*gtk_gl_area_queue_render(
+        GTK_GL_AREA(appstate->widgetState->workspaceCanvas));*/
 }
 
 static void appstate_on_entry_update(GtkEntry* entry, gpointer user_data) {
@@ -97,7 +99,8 @@ static void canvas_onclick(GtkGestureClick* gesture, int n_press, double x,
 
     vektor_appstate_canvas_click(state, normalized_coords.x,
                                  normalized_coords.y);
-    gtk_gl_area_queue_render(GTK_GL_AREA(widget));
+
+    //gtk_gl_area_queue_render(GTK_GL_AREA(widget));
 }
 
 void vektor_appstate_canvas_click(VektorAppState* state, double x, double y) {
@@ -174,18 +177,18 @@ begin_click_dispatch:
         vektor_rectangle_set_start(&state->selectedShape->primitive.rectangle, pos);
         vektor_rectangle_set_end(
             &state->selectedShape->primitive.rectangle, 
-            vec2_add(pos, (V2){0.1f,-0.1f})
+            vec2_add(pos, (V2){0.1f,0.1f})
         );
         //state->selectedShape = NULL;
         vektor_shapes_update_bbox(state->shapeBuffer);
     }
     else if (state->selectedTool == VektorSelectionTool) {
-        g_print("as select");
         for(size_t i = 0; i < state->shapeBuffer->count; i++) {
             VektorBBox bbox = 
                 vektor_primitive_get_bbox(state->shapeBuffer->shapes[i].primitive);
             if(vektor_bbox_isinside(bbox, pos)) {
                 state->selectedShape = &(state->shapeBuffer->shapes[i]);
+                g_print("%d", state->selectedShape == NULL);
                 return;
             }
         }
@@ -215,6 +218,8 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     data_selecttool->tool = VektorSelectionTool;
 
     // populate appstate
+    stateOut->startupTime = g_get_monotonic_time();
+
     stateOut->shapeBuffer = malloc(sizeof(VektorShapeBuffer));
     *stateOut->shapeBuffer = (VektorShapeBuffer){0};
     stateOut->canvas = malloc(sizeof(VektorCanvas));
@@ -224,6 +229,7 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     VektorCanvasRenderInfo* renderInfo = malloc(sizeof(VektorCanvasRenderInfo));
     renderInfo->selectedShape = &(stateOut->selectedShape);
     renderInfo->shapes = stateOut->shapeBuffer;
+    renderInfo->startupTime = stateOut->startupTime;
     vektor_canvas_init(wstate, stateOut->canvas, renderInfo);
 
     // link all the buttons

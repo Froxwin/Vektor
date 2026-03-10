@@ -112,7 +112,7 @@ VektorBBox vektor_polygon_get_bbox(VektorPrimitive prim) {
 }
 
 VektorBBox vektor_rectangle_get_bbox(VektorPrimitive prim) {
-    return *(VektorBBox*)&prim.rectangle;
+    return (VektorBBox){prim.rectangle.start, prim.rectangle.end};
 }
 
 VektorBBox vektor_primitive_get_bbox(VektorPrimitive prim) {
