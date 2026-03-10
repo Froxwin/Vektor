@@ -92,16 +92,24 @@ static void init_shader(void) {
         g_error("Failed to load shader files");
 
     standard_shader_program = create_shader_program(frag_src, vert_src);
-    selection_shader_program = create_shader_program(selection_frag_src, vert_src);
+    selection_shader_program =
+        create_shader_program(selection_frag_src, vert_src);
 
-    shader_standard_uProjMatrixLoc = glGetUniformLocation(standard_shader_program, "uProjection");
-    shader_selection_uProjMatrixLoc = glGetUniformLocation(selection_shader_program, "uProjection");
-    shader_selection_uTimeLoc = glGetUniformLocation(selection_shader_program, "uTime");
-    shader_selection_uC1Loc = glGetUniformLocation(selection_shader_program, "uColor1");
-    shader_selection_uC2Loc = glGetUniformLocation(selection_shader_program, "uColor2");
+    shader_standard_uProjMatrixLoc =
+        glGetUniformLocation(standard_shader_program, "uProjection");
+    shader_selection_uProjMatrixLoc =
+        glGetUniformLocation(selection_shader_program, "uProjection");
+    shader_selection_uTimeLoc =
+        glGetUniformLocation(selection_shader_program, "uTime");
+    shader_selection_uC1Loc =
+        glGetUniformLocation(selection_shader_program, "uColor1");
+    shader_selection_uC2Loc =
+        glGetUniformLocation(selection_shader_program, "uColor2");
 
-    shader_selection_uMinLoc = glGetUniformLocation(selection_shader_program, "uMin");
-    shader_selection_uMaxLoc = glGetUniformLocation(selection_shader_program, "uMax");
+    shader_selection_uMinLoc =
+        glGetUniformLocation(selection_shader_program, "uMin");
+    shader_selection_uMaxLoc =
+        glGetUniformLocation(selection_shader_program, "uMax");
 
     if (shader_selection_uMinLoc == -1 || shader_selection_uMaxLoc == -1)
         g_warning("Selection shader: uMin/uMax uniform not found in shader!");
@@ -126,41 +134,38 @@ static void init_geometry(void) {
 
     glBindVertexArray(0);
 }
-static gboolean render(GtkGLArea* a, GdkGLContext* ctx, VektorCanvasRenderInfo* renderInfo) {
+static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
+                       VektorCanvasRenderInfo* renderInfo) {
     vb.count = 0;
 
     vektor_rasterize(&vb, renderInfo->shapes);
-    size_t shape_vertex_count = vb.count; // remember how many vertices belong to shapes
+    size_t shape_vertex_count =
+        vb.count; // remember how many vertices belong to shapes
 
     // create selection quad if a shape is selected
-    if(renderInfo->selectedShape != NULL && 
+    if (renderInfo->selectedShape != NULL &&
         *(renderInfo->selectedShape) != NULL) {
         VektorBBox bbox = vektor_primitive_get_bbox(
-            (*(renderInfo->selectedShape))->primitive
-        );
-        
-        vektor_vb_add_quad(
-            &vb, 
-            bbox.min, 
-            bbox.max, 
-            vektor_color_new(255,255,255,255)
-        );
+            (*(renderInfo->selectedShape))->primitive);
+
+        vektor_vb_add_quad(&vb, bbox.min, bbox.max,
+                           vektor_color_new(255, 255, 255, 255));
     }
 
     glBufferData(GL_ARRAY_BUFFER, vb.count * sizeof(Vertex), vb.vertices,
                  GL_STATIC_DRAW);
-
 
     // PASS 1 - draw shape vertices
     glUseProgram(standard_shader_program);
 
     float projectionMatrix[16] = {1, 0, 0, 0, 0, 1, 0, 0,
                                   0, 0, 1, 0, 0, 0, 0, 1};
-    glUniformMatrix4fv(shader_standard_uProjMatrixLoc, 1, GL_FALSE, projectionMatrix);
+    glUniformMatrix4fv(shader_standard_uProjMatrixLoc, 1, GL_FALSE,
+                       projectionMatrix);
 
     glBindVertexArray(vao);
     glDisable(GL_CULL_FACE);
-    
+
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -168,26 +173,28 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx, VektorCanvasRenderInfo* 
 
     // PASS 2 - draw selection quads
     if (vb.count > shape_vertex_count) {
-        float time = (g_get_monotonic_time() - renderInfo->startupTime) / 10000000.0f;
+        float time =
+            (g_get_monotonic_time() - renderInfo->startupTime) / 10000000.0f;
 
         // re-fetch bbox (we know a shape is selected)
         VektorBBox bbox = vektor_primitive_get_bbox(
-            (*(renderInfo->selectedShape))->primitive
-        );
+            (*(renderInfo->selectedShape))->primitive);
 
         glUseProgram(selection_shader_program);
 
         float projectionMatrix[16] = {1, 0, 0, 0, 0, 1, 0, 0,
-                                    0, 0, 1, 0, 0, 0, 0, 1};
+                                      0, 0, 1, 0, 0, 0, 0, 1};
 
-        glUniformMatrix4fv(shader_selection_uProjMatrixLoc, 1, GL_FALSE, projectionMatrix);
+        glUniformMatrix4fv(shader_selection_uProjMatrixLoc, 1, GL_FALSE,
+                           projectionMatrix);
         glUniform1f(shader_selection_uTimeLoc, time);
         glUniform2f(shader_selection_uMinLoc, bbox.min.x, bbox.min.y);
         glUniform2f(shader_selection_uMaxLoc, bbox.max.x, bbox.max.y);
         glUniform4f(shader_selection_uC1Loc, 0, 0, 0, 1);
         glUniform4f(shader_selection_uC2Loc, 0.46, 0.46, 1, 1);
 
-        glDrawArrays(GL_TRIANGLES, shape_vertex_count, vb.count - shape_vertex_count);
+        glDrawArrays(GL_TRIANGLES, shape_vertex_count,
+                     vb.count - shape_vertex_count);
     }
 
     glBindVertexArray(0);

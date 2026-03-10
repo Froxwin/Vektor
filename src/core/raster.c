@@ -14,7 +14,7 @@ void vektor_edgebuffer_add_edge(EdgeBuffer* buffer, Edge edge) {
 }
 
 void vektor_polyline_tessellate(EdgeBuffer* buffer, VektorPolyline* line,
-                             size_t j) {
+                                size_t j) {
     for (size_t i = 0; i + 1 < line->count; i++) {
         vektor_edgebuffer_add_edge(
             buffer, (Edge){line->points[i], line->points[i + 1], 0, j});
@@ -22,22 +22,26 @@ void vektor_polyline_tessellate(EdgeBuffer* buffer, VektorPolyline* line,
 }
 
 void vektor_polygon_tessellate(EdgeBuffer* buffer, VektorPolygon* polygon,
-                             size_t j) {
+                               size_t j) {
     for (size_t i = 0; i + 1 < polygon->count; i++) {
         vektor_edgebuffer_add_edge(
             buffer, (Edge){polygon->points[i], polygon->points[i + 1], 0, j});
     }
     vektor_edgebuffer_add_edge(
-        buffer, (Edge){polygon->points[polygon->count - 1], polygon->points[0], 0, j});
+        buffer,
+        (Edge){polygon->points[polygon->count - 1], polygon->points[0], 0, j});
 }
 
-void vektor_rectangle_tessellate(EdgeBuffer* buffer, VektorRectangle* rct, size_t j) {
-    if (vec2_equals(rct->end, rct->start)) {return;}
+void vektor_rectangle_tessellate(EdgeBuffer* buffer, VektorRectangle* rct,
+                                 size_t j) {
+    if (vec2_equals(rct->end, rct->start)) {
+        return;
+    }
 
-    Edge top = (Edge){rct->start, (V2){rct->end.x, rct->start.y}, 0, j };
+    Edge top = (Edge){rct->start, (V2){rct->end.x, rct->start.y}, 0, j};
     Edge right = (Edge){(V2){rct->end.x, rct->start.y}, rct->end, 0, j};
     Edge bottom = (Edge){(V2){rct->start.x, rct->end.y}, rct->end, 0, j};
-    Edge left = (Edge){rct->start, (V2){rct->start.x, rct->end.y}, 0, j };
+    Edge left = (Edge){rct->start, (V2){rct->start.x, rct->end.y}, 0, j};
 
     vektor_edgebuffer_add_edge(buffer, top);
     vektor_edgebuffer_add_edge(buffer, right);
@@ -72,7 +76,8 @@ void vektor_rasterize(VertexBuffer* vb, VektorShapeBuffer* shapes) {
     vektor_edges_to_triangles(vb, &edges, shapes);
 }
 
-void vektor_vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2, VektorColor color) {
+void vektor_vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2,
+                            VektorColor color) {
     if (vb->count + 3 >= vb->capacity) {
         vb->capacity = vb->capacity ? vb->capacity * 2 : 8;
         vb->vertices = realloc(vb->vertices, sizeof(Vertex) * vb->capacity);
@@ -80,6 +85,11 @@ void vektor_vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2, VektorColor c
     vb->vertices[vb->count++] = (Vertex){v0, color};
     vb->vertices[vb->count++] = (Vertex){v1, color};
     vb->vertices[vb->count++] = (Vertex){v2, color};
+
+    if (vb->count <= vb->capacity / 4) {
+        vb->capacity /= 2;
+        vb->vertices = realloc(vb->vertices, sizeof(Vertex) * vb->capacity);
+    }
 }
 
 void vektor_vb_add_quad(VertexBuffer* vb, V2 a, V2 b, VektorColor color) {
@@ -117,9 +127,9 @@ void vektor_edge_to_triangles(VertexBuffer* vb, Edge e,
     V2 v3 = {e.p2.x - px, e.p2.y - py};
 
     vektor_vb_add_triangle(vb, v0, v1, v2,
-                    shape_buffer->shapes[e.shape_id].style.stroke_color);
+                           shape_buffer->shapes[e.shape_id].style.stroke_color);
     vektor_vb_add_triangle(vb, v2, v1, v3,
-                    shape_buffer->shapes[e.shape_id].style.stroke_color);
+                           shape_buffer->shapes[e.shape_id].style.stroke_color);
 }
 
 void vektor_edges_to_triangles(VertexBuffer* vb, EdgeBuffer* edges,

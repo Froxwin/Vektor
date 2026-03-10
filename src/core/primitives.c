@@ -17,6 +17,11 @@ void vektor_polyline_add_point(VektorPolyline* pl, V2 point) {
         pl->points = realloc(pl->points, sizeof(V2) * pl->capacity);
     }
     pl->points[pl->count++] = point;
+
+    if (pl->count <= pl->capacity / 4) {
+        pl->capacity /= 2;
+        pl->points = realloc(pl->points, sizeof(V2) * pl->capacity);
+    }
 }
 
 void vektor_polyline_free(VektorPolyline* pl) {
@@ -40,6 +45,11 @@ void vektor_polygon_add_point(VektorPolygon* pg, V2 point) {
         pg->points = realloc(pg->points, sizeof(V2) * pg->capacity);
     }
     pg->points[pg->count++] = point;
+
+    if (pg->count <= pg->capacity / 4) {
+        pg->capacity /= 2;
+        pg->points = realloc(pg->points, sizeof(V2) * pg->capacity);
+    }
 }
 
 void vektor_polygon_free(VektorPolygon* pg) {
@@ -63,9 +73,7 @@ void vektor_rectangle_set_start(VektorRectangle* rct, V2 point) {
     rct->start = point;
 }
 
-void vektor_rectangle_free(VektorRectangle* rct) {
-    free(rct);
-}
+void vektor_rectangle_free(VektorRectangle* rct) { free(rct); }
 
 void vektor_shapebuffer_add_shape(VektorShapeBuffer* buffer,
                                   VektorShape shape) {
@@ -75,6 +83,12 @@ void vektor_shapebuffer_add_shape(VektorShapeBuffer* buffer,
             realloc(buffer->shapes, sizeof(VektorShape) * buffer->capacity);
     }
     buffer->shapes[buffer->count++] = shape;
+
+    if (buffer->count <= buffer->capacity / 4) {
+        buffer->capacity /= 2;
+        buffer->shapes =
+            realloc(buffer->shapes, sizeof(VektorShape) * buffer->capacity);
+    }
 }
 
 VektorBBox vektor_polyline_get_bbox(VektorPrimitive prim) {
@@ -136,17 +150,21 @@ VektorBBox vektor_primitive_get_bbox(VektorPrimitive prim) {
 }
 
 bool vektor_bbox_isinside(VektorBBox bbox, V2 point) {
-    return point.x >= bbox.min.x && point.y >= bbox.min.y
-        && point.x <= bbox.max.x && point.y <= bbox.max.y;
+    return point.x >= bbox.min.x && point.y >= bbox.min.y &&
+           point.x <= bbox.max.x && point.y <= bbox.max.y;
 }
 
 VektorShape vektor_shape_new(VektorPrimitive prim, VektorStyle style,
                              int z_index) {
-    return (VektorShape){.primitive = prim, .style = style, .z_index = z_index, .bbox=vektor_primitive_get_bbox(prim)};
+    return (VektorShape){.primitive = prim,
+                         .style = style,
+                         .z_index = z_index,
+                         .bbox = vektor_primitive_get_bbox(prim)};
 }
 
 void vektor_shapes_update_bbox(VektorShapeBuffer* buffer) {
     for (size_t i = 0; i < buffer->count; i++) {
-        buffer->shapes[i].bbox = vektor_primitive_get_bbox(buffer->shapes[i].primitive);
+        buffer->shapes[i].bbox =
+            vektor_primitive_get_bbox(buffer->shapes[i].primitive);
     }
 }

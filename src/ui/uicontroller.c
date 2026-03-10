@@ -30,7 +30,7 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
 
     GtkIconTheme* theme =
         gtk_icon_theme_get_for_display(gdk_display_get_default());
-    
+
     /*if (gtk_icon_theme_has_icon(theme, "vektor-circle-symbolic"))
         g_print("GTK sees it!\n");
     else
@@ -63,11 +63,11 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
     stateOut->workspaceColorPicker =
         VEKTOR_COLOR_WHEEL(gtk_builder_get_object(builder, "color_picker"));
 
-    stateOut->sidepanelEntryR = 
+    stateOut->sidepanelEntryR =
         GTK_ENTRY(gtk_builder_get_object(builder, "spin_color_r"));
-    stateOut->sidepanelEntryG = 
+    stateOut->sidepanelEntryG =
         GTK_ENTRY(gtk_builder_get_object(builder, "spin_color_g"));
-    stateOut->sidepanelEntryB = 
+    stateOut->sidepanelEntryB =
         GTK_ENTRY(gtk_builder_get_object(builder, "spin_color_b"));
 
     // Set window properties

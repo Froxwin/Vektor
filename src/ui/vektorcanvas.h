@@ -7,7 +7,6 @@
 #include "src/core/primitives.h"
 #include "uicontroller.h"
 
-
 typedef struct VektorCanvas {
     GtkGLArea* canvasWidget;
 
@@ -23,7 +22,7 @@ typedef struct VektorCanvas {
 typedef struct VektorCanvasRenderInfo {
     gint64 startupTime;
     VektorShapeBuffer* shapes;
-    
+
     // a pointer to appstate->selectedShape
     VektorShape** selectedShape;
 } VektorCanvasRenderInfo;
