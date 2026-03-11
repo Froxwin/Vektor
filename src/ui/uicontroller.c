@@ -31,11 +31,6 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
     GtkIconTheme* theme =
         gtk_icon_theme_get_for_display(gdk_display_get_default());
 
-    /*if (gtk_icon_theme_has_icon(theme, "vektor-circle-symbolic"))
-        g_print("GTK sees it!\n");
-    else
-        g_print("Still invisible...\n");*/
-
     // populate state
     stateOut->window =
         GTK_WINDOW(gtk_builder_get_object(builder, "main_window"));
@@ -75,10 +70,9 @@ void vektor_uictrl_init(GtkApplication* app, VektorWidgetState* stateOut) {
     gtk_window_set_title(stateOut->window, "Vektor");
     gtk_window_set_default_size(stateOut->window, 800, 600);
 
-    g_object_unref(builder);
-}
+    // Set dimensions
+    gtk_paned_set_position(stateOut->workspacePaned, 800 * .7);
+    gtk_paned_set_position(stateOut->sidepanelPaned, 250);
 
-void vektor_uictrl_map(VektorWidgetState* state) {
-    gtk_paned_set_position(state->workspacePaned, 800 * .7);
-    gtk_paned_set_position(state->sidepanelPaned, 250);
+    g_object_unref(builder);
 }

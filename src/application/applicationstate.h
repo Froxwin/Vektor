@@ -10,7 +10,8 @@ typedef enum VektorAppTool {
     VektorSelectionTool,
     VektorLineTool,
     VektorPolygonTool,
-    VektorRectangleTool
+    VektorRectangleTool,
+    VektorCircleTool
 } VektorAppTool;
 
 typedef struct VektorAppState {

@@ -1,19 +1,12 @@
 #include "glib.h"
 #include "gtk/gtk.h"
 #include "src/application/applicationstate.h"
-#include "src/core/primitives.h"
 #include "stdio.h"
 #include "stdlib.h"
 
 #include "./application/applicationstate.h"
-#include "./core/raster.h"
 #include "./ui/uicontroller.h"
-#include "./ui/vektorcanvas.h"
-#include "./util/color.h"
 
-static void on_map(GtkWidget* window, gpointer user_data) {
-    vektor_uictrl_map((VektorWidgetState*)user_data);
-}
 
 static int update_callback(gpointer data) {
     VektorAppState* appstate = (VektorAppState*)data;
@@ -29,9 +22,6 @@ static void activate(GtkApplication* app, gpointer user_data) {
     vektor_uictrl_init(app, widget_state);
     VektorAppState* app_state = (VektorAppState*)malloc(sizeof(VektorAppState));
     vektor_appstate_new(widget_state, app_state);
-
-    g_signal_connect(widget_state->window, "map", G_CALLBACK(on_map),
-                     widget_state);
 
     g_timeout_add(1, update_callback, app_state);
 

@@ -1,4 +1,5 @@
 #include "primitives.h"
+#include "src/core/vector.h"
 #include <assert.h>
 #include <math.h>
 #include <stddef.h>
@@ -74,6 +75,10 @@ void vektor_circle_set_radius(VektorCircle* circle, double radius) {
     circle->radius = radius;
 }
 
+void vektor_circle_free(VektorCircle* circle) {
+    free(circle);
+}
+
 VektorRectangle* vektor_rectangle_new(void) {
     VektorRectangle* rct = malloc(sizeof(VektorRectangle));
     rct->start = (V2){.x = 0, .y = 0};
@@ -107,15 +112,23 @@ void vektor_shapebuffer_add_shape(VektorShapeBuffer* buffer,
 }
 
 VektorBBox vektor_polyline_get_bbox(VektorPrimitive prim) {
-    float min_x, max_x, min_y, max_y;
-    for (size_t i = 0; i < prim.polyline->count; i++) {
-        V2 p = prim.polyline->points[i];
+    V2 first = prim.polyline->points[0];
+
+    float min_x = first.x;
+    float max_x = first.x;
+    float min_y = first.y;
+    float max_y = first.y;
+
+    for (size_t i = 1; i < prim.polygon->count; i++) {
+        V2 p = prim.polygon->points[i];
+
         min_x = fminf(min_x, p.x);
         min_y = fminf(min_y, p.y);
 
-        max_x = fminf(max_x, p.x);
-        max_y = fminf(max_y, p.y);
+        max_x = fmaxf(max_x, p.x);
+        max_y = fmaxf(max_y, p.y);
     }
+
     return (VektorBBox){(V2){min_x, min_y}, (V2){max_x, max_y}};
 }
 
@@ -144,6 +157,13 @@ VektorBBox vektor_rectangle_get_bbox(VektorPrimitive prim) {
     return (VektorBBox){prim.rectangle.start, prim.rectangle.end};
 }
 
+VektorBBox vektor_circle_get_bbox(VektorPrimitive prim) {
+    return (VektorBBox){
+        vec2_sub(prim.circle.center, vec2_fromfloat(prim.circle.radius)), 
+        vec2_add(prim.circle.center, vec2_fromfloat(prim.circle.radius))
+    };
+}
+
 VektorBBox vektor_primitive_get_bbox(VektorPrimitive prim) {
     switch (prim.kind) {
     case VEKTOR_POLYLINE:
@@ -156,6 +176,10 @@ VektorBBox vektor_primitive_get_bbox(VektorPrimitive prim) {
 
     case VEKTOR_RECTANGLE:
         return vektor_rectangle_get_bbox(prim);
+        break;
+
+    case VEKTOR_CIRCLE:
+        return vektor_circle_get_bbox(prim);
         break;
 
     default:

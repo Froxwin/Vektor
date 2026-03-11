@@ -158,6 +158,26 @@ begin_click_dispatch:
 
         vektor_polygon_add_point(state->selectedShape->primitive.polygon, pos);
         vektor_shapes_update_bbox(state->shapeBuffer);
+    } else if (state->selectedTool == VektorCircleTool) {
+
+        VektorCircle* circle = vektor_circle_new();
+        VektorPrimitive circlePrimitive =
+            (VektorPrimitive){.kind = VEKTOR_CIRCLE, .circle = *circle};
+        VektorStyle style = (VektorStyle){
+            .stroke_color = state->currentColor, .stroke_width = 0.01};
+        vektor_shapebuffer_add_shape(
+            state->shapeBuffer,
+            vektor_shape_new(circlePrimitive, style, 0));
+
+        state->selectedShape =
+            &(state->shapeBuffer->shapes[state->shapeBuffer->count - 1]);
+        
+        vektor_circle_free(circle);
+
+        vektor_circle_set_center(&state->selectedShape->primitive.circle, pos);
+        vektor_circle_set_radius(&state->selectedShape->primitive.circle, 0.1f);
+
+        vektor_shapes_update_bbox(state->shapeBuffer);
     } else if (state->selectedTool == VektorRectangleTool) {
 
         VektorRectangle* rect = vektor_rectangle_new();
@@ -185,7 +205,6 @@ begin_click_dispatch:
                 state->shapeBuffer->shapes[i].primitive);
             if (vektor_bbox_isinside(bbox, pos)) {
                 state->selectedShape = &(state->shapeBuffer->shapes[i]);
-                g_print("%d", state->selectedShape == NULL);
                 return;
             }
         }
@@ -217,22 +236,21 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     data_selecttool->state = stateOut;
     data_selecttool->tool = VektorSelectionTool;
 
+    button_tool_set_data* data_circletool =
+        malloc(sizeof(button_tool_set_data));
+    data_circletool->state = stateOut;
+    data_circletool->tool = VektorCircleTool;
+    data_circletool->revealer = wstate->workspaceRevealerShapes;
+
     // populate appstate
     stateOut->startupTime = g_get_monotonic_time();
-
     stateOut->shapeBuffer = malloc(sizeof(VektorShapeBuffer));
     *stateOut->shapeBuffer = (VektorShapeBuffer){0};
-
-    VektorCircle circ = (VektorCircle){.center = (V2){0, 0}, .radius = 0.3};
-    VektorShape shp = vektor_shape_new(
-        (VektorPrimitive){.kind = VEKTOR_CIRCLE, .circle = circ},
-        (VektorStyle){.stroke_color = stateOut->currentColor, 0.01}, 0);
-    vektor_shapebuffer_add_shape(stateOut->shapeBuffer, shp);
-
     stateOut->canvas = malloc(sizeof(VektorCanvas));
     stateOut->widgetState = wstate;
     stateOut->currentColor = vektor_color_solid(0, 0, 0);
     stateOut->selectedShape = NULL;
+
     VektorCanvasRenderInfo* renderInfo = malloc(sizeof(VektorCanvasRenderInfo));
     renderInfo->zoom = 1;
     renderInfo->panX = 0;
@@ -245,13 +263,14 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     renderInfo->canvasMat = m33_identity();
     vektor_canvas_init(wstate, stateOut->canvas, renderInfo);
     stateOut->renderInfo = renderInfo;
+
     // link all the buttons
     g_signal_connect(G_OBJECT(wstate->workspaceButtonLineTool), "clicked",
                      G_CALLBACK(appstate_set_tool), data_linetool);
     g_signal_connect(G_OBJECT(wstate->workspaceButtonRectTool), "clicked",
                      G_CALLBACK(appstate_set_tool), data_rectangletool);
     g_signal_connect(G_OBJECT(wstate->workspaceButtonCircleTool), "clicked",
-                     G_CALLBACK(appstate_set_tool), data_linetool);
+                     G_CALLBACK(appstate_set_tool), data_circletool);
     g_signal_connect(G_OBJECT(wstate->workspaceButtonPolygonTool), "clicked",
                      G_CALLBACK(appstate_set_tool), data_polygontool);
     g_signal_connect(G_OBJECT(wstate->workspaceButtonSelectionTool), "clicked",

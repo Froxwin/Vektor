@@ -56,6 +56,7 @@ void vektor_polygon_free(VektorPolygon* pl);
 VektorCircle* vektor_circle_new(void);
 void vektor_circle_set_center(VektorCircle* circle, V2 point);
 void vektor_circle_set_radius(VektorCircle* circle, double radius);
+void vektor_circle_free(VektorCircle* circle);
 
 VektorRectangle* vektor_rectangle_new(void);
 void vektor_rectangle_set_end(VektorRectangle* rct, V2 point);
