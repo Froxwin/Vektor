@@ -205,6 +205,8 @@ void vektor_rectangle_create_handles(VektorRectangle* rectangle, V2** handleArr,
     
     V2 halfdist = vec2_scale(vec2_sub(rectangle->end, rectangle->start), 0.5f);
     V2 center = vec2_add(rectangle->start, halfdist);
+    g_print("boobs: %f %f\n", rectangle->start.x, rectangle->start.y);
+    g_print("pussy: %f %f\n", rectangle->end.x, rectangle->end.y);
 
     (*handleArr)[0] = center;
     (*handleArr)[1] = vec2_add( center, vec2_mul(halfdist, (V2){-1.0f, 1.0f}) );
@@ -320,6 +322,15 @@ void vektor_shape_handles_updated(VektorShape* shape) {
     }
 }
 
+void vektor_shape_add_handle(VektorShape* shape, V2 handle) {
+    // could be optimised with capacity property
+    // but this function is only called when adding new
+    // points to polyline and polygon, so it should
+    // not be that much of an overhead
+    shape->handles = realloc(shape->handles, sizeof(V2) * shape->handleCount + 1);
+    shape->handles[shape->handleCount++] = handle;
+}
+
 // ------ BBOX METHODS ------
 
 bool vektor_bbox_isinside(VektorBBox bbox, V2 point) {
@@ -334,14 +345,29 @@ VektorBBox vektor_bbox_fromcenter(V2 center, float dist) {
     return (VektorBBox){min,max};
 }
 
+VektorBBox vektor_bbox_expand(VektorBBox bbox, float val) {
+    return (VektorBBox){
+        vec2_sub(bbox.min, vec2_fromfloat(val)), 
+        vec2_add(bbox.max, vec2_fromfloat(val))
+    };
+}
+
 // ------ SHAPE METHODS ------
 
 VektorShape vektor_shape_new(VektorPrimitive prim, VektorStyle style,
                              int z_index) {
-    return (VektorShape){.primitive = prim,
+    VektorShape shape = (VektorShape){.primitive = prim,
                          .style = style,
                          .z_index = z_index,
                          .bbox = vektor_primitive_get_bbox(prim)};
+
+    /*
+    create_handles() allocates new buffer for handles,
+    and even if the local shape variable goes out of scope and deallocates,
+    the passed value's pointer to an array of handles remains valid in the passed copy.
+    */
+    vektor_shape_create_handles(&shape);
+    return shape;
 }
 
 void vektor_shapes_update_bbox(VektorShapeBuffer* buffer) {

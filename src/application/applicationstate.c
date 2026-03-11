@@ -131,6 +131,10 @@ begin_click_dispatch:
         vektor_polyline_add_point(state->selectedShape->primitive.polyline,
                                   pos);
         vektor_shapes_update_bbox(state->shapeBuffer);
+
+        // polyline's handle count is not fixed, so we have to add them manually
+        vektor_shape_add_handle(state->selectedShape, pos);
+
     } else if (state->selectedTool == VektorPolygonTool) {
         // create new polygon shape if none is selected
         if (state->selectedShape == NULL) {
@@ -155,6 +159,10 @@ begin_click_dispatch:
 
         vektor_polygon_add_point(state->selectedShape->primitive.polygon, pos);
         vektor_shapes_update_bbox(state->shapeBuffer);
+
+        // polygon's handle count is not fixed, so we have to add them manually
+        vektor_shape_add_handle(state->selectedShape, pos);   
+
     } else if (state->selectedTool == VektorCircleTool) {
 
         VektorCircle* circle = vektor_circle_new();
@@ -174,6 +182,12 @@ begin_click_dispatch:
         vektor_circle_set_radius(&state->selectedShape->primitive.circle, 0.1f);
 
         vektor_shapes_update_bbox(state->shapeBuffer);
+
+        vektor_circle_create_handles(
+            &state->selectedShape->primitive.circle, 
+            &state->selectedShape->handles,
+            &state->selectedShape->handleCount
+        );
     } else if (state->selectedTool == VektorRectangleTool) {
 
         VektorRectangle* rect = vektor_rectangle_new();
@@ -193,6 +207,12 @@ begin_click_dispatch:
                                    pos);
         vektor_rectangle_set_end(&state->selectedShape->primitive.rectangle,
                                  vec2_add(pos, (V2){0.1f, 0.1f}));
+        vektor_rectangle_create_handles(
+            &state->selectedShape->primitive.rectangle, 
+            &state->selectedShape->handles,
+            &state->selectedShape->handleCount
+        );
+
         // state->selectedShape = NULL;
         vektor_shapes_update_bbox(state->shapeBuffer);
     } else if (state->selectedTool == VektorSelectionTool) {
@@ -207,6 +227,9 @@ begin_click_dispatch:
         // was clicked outside any shapes - reset selection
         state->selectedShape = NULL;
     }
+
+    if(state->selectedShape != NULL)
+        g_print("%zu\n", state->selectedShape->handleCount);
 }
 
 void vektor_appstate_canvas_drag_begin(GtkGestureDrag* gesture, gdouble x,

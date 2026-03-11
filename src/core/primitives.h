@@ -93,6 +93,7 @@ VektorBBox vektor_rectangle_get_bbox(VektorPrimitive prim);
 VektorBBox vektor_primitive_get_bbox(VektorPrimitive prim);
 bool vektor_bbox_isinside(VektorBBox bbox, V2 point);
 VektorBBox vektor_bbox_fromcenter(V2 center, float dist);
+VektorBBox vektor_bbox_expand(VektorBBox bbox, float val);
 
 // shape handles
 void vektor_polyline_create_handles(VektorPolyline* polyline, V2** handleArr, size_t* count);
@@ -100,6 +101,7 @@ void vektor_polygon_create_handles(VektorPolygon* polygon, V2** handleArr, size_
 void vektor_circle_create_handles(VektorCircle* circle, V2** handleArr, size_t* count);
 void vektor_rectangle_create_handles(VektorRectangle* rectangle, V2** handleArr, size_t* count);
 void vektor_shape_create_handles(VektorShape* shape);
+void vektor_shape_add_handle(VektorShape* shape, V2 handle);
 
     /* reconstructs the shape based on handles alone */
 void vektor_polyline_handles_updated(VektorPolyline* polyline, V2** handles, size_t* count);
