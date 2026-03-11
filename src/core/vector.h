@@ -14,7 +14,7 @@ typedef struct {
     double z;
 } V3;
 
-static inline V2 vec2_fromfloat(const float f) { return (V2){f,f}; }
+static inline V2 vec2_fromfloat(const float f) { return (V2){f, f}; }
 
 static inline V3 vec2_vector(const V2 v) { return (V3){v.x, v.y, 0}; }
 

@@ -1,6 +1,7 @@
 #include "raster.h"
 #include "epoxy/gl.h"
 #include "primitives.h"
+#include "src/core/matrix.h"
 #include "src/core/vector.h"
 #include "stddef.h"
 #include <math.h>
@@ -144,10 +145,14 @@ void vektor_edge_to_triangles(VertexBuffer* vb, Edge e,
     float py =
         dx / len * (shape_buffer->shapes[e.shape_id].style.stroke_width / 2);
 
-    V2 v0 = {e.p1.x + px, e.p1.y + py};
-    V2 v1 = {e.p1.x - px, e.p1.y - py};
-    V2 v2 = {e.p2.x + px, e.p2.y + py};
-    V2 v3 = {e.p2.x - px, e.p2.y - py};
+    V2 v0 = m33_transform(shape_buffer->shapes[e.shape_id].transform,
+                          (V2){e.p1.x + px, e.p1.y + py});
+    V2 v1 = m33_transform(shape_buffer->shapes[e.shape_id].transform,
+                          (V2){e.p1.x - px, e.p1.y - py});
+    V2 v2 = m33_transform(shape_buffer->shapes[e.shape_id].transform,
+                          (V2){e.p2.x + px, e.p2.y + py});
+    V2 v3 = m33_transform(shape_buffer->shapes[e.shape_id].transform,
+                          (V2){e.p2.x - px, e.p2.y - py});
 
     vektor_vb_add_triangle(vb, v0, v1, v2,
                            shape_buffer->shapes[e.shape_id].style.stroke_color);

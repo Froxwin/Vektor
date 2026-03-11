@@ -161,7 +161,7 @@ begin_click_dispatch:
         vektor_shapes_update_bbox(state->shapeBuffer);
 
         // polygon's handle count is not fixed, so we have to add them manually
-        vektor_shape_add_handle(state->selectedShape, pos);   
+        vektor_shape_add_handle(state->selectedShape, pos);
 
     } else if (state->selectedTool == VektorCircleTool) {
 
@@ -183,11 +183,9 @@ begin_click_dispatch:
 
         vektor_shapes_update_bbox(state->shapeBuffer);
 
-        vektor_circle_create_handles(
-            &state->selectedShape->primitive.circle, 
-            &state->selectedShape->handles,
-            &state->selectedShape->handleCount
-        );
+        vektor_circle_create_handles(&state->selectedShape->primitive.circle,
+                                     &state->selectedShape->handles,
+                                     &state->selectedShape->handleCount);
     } else if (state->selectedTool == VektorRectangleTool) {
 
         VektorRectangle* rect = vektor_rectangle_new();
@@ -208,10 +206,8 @@ begin_click_dispatch:
         vektor_rectangle_set_end(&state->selectedShape->primitive.rectangle,
                                  vec2_add(pos, (V2){0.1f, 0.1f}));
         vektor_rectangle_create_handles(
-            &state->selectedShape->primitive.rectangle, 
-            &state->selectedShape->handles,
-            &state->selectedShape->handleCount
-        );
+            &state->selectedShape->primitive.rectangle,
+            &state->selectedShape->handles, &state->selectedShape->handleCount);
 
         // state->selectedShape = NULL;
         vektor_shapes_update_bbox(state->shapeBuffer);
@@ -228,7 +224,7 @@ begin_click_dispatch:
         state->selectedShape = NULL;
     }
 
-    if(state->selectedShape != NULL)
+    if (state->selectedShape != NULL)
         g_print("%zu\n", state->selectedShape->handleCount);
 }
 
@@ -242,12 +238,10 @@ void vektor_appstate_canvas_drag_begin(GtkGestureDrag* gesture, gdouble x,
 
     V2 normalized_coords =
         (V2){(2 * (x / widget_w)) - 1, 1 - (2 * (y / widget_h))};
-
 }
 
-void vektor_appstate_canvas_drag_update(GtkGestureDrag* gesture,
-                                        gdouble x, gdouble y,
-                                        gpointer user_data) {
+void vektor_appstate_canvas_drag_update(GtkGestureDrag* gesture, gdouble x,
+                                        gdouble y, gpointer user_data) {
     gdouble start_x, start_y;
     gtk_gesture_drag_get_start_point(gesture, &start_x, &start_y);
 
@@ -257,9 +251,8 @@ void vektor_appstate_canvas_drag_update(GtkGestureDrag* gesture,
     int widget_w = gtk_widget_get_width(widget);
     int widget_h = gtk_widget_get_height(widget);
 
-    V2 norm =
-        (V2){(2 * ( (x+start_x) / widget_w)) - 1, 1 - (2 * ( (y+start_y) / widget_h))};
-    
+    V2 norm = (V2){(2 * ((x + start_x) / widget_w)) - 1,
+                   1 - (2 * ((y + start_y) / widget_h))};
 }
 
 void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {

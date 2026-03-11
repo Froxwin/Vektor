@@ -7,7 +7,6 @@
 #include "./application/applicationstate.h"
 #include "./ui/uicontroller.h"
 
-
 static int update_callback(gpointer data) {
     VektorAppState* appstate = (VektorAppState*)data;
     gtk_gl_area_queue_render(
