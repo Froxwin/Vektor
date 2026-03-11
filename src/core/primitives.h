@@ -45,6 +45,26 @@ typedef struct {
     };
 } VektorPrimitive;
 
+typedef struct {
+    VektorColor stroke_color;
+    float stroke_width;
+} VektorStyle;
+
+typedef struct {
+    V2 min;
+    V2 max;
+} VektorBBox;
+
+typedef struct {
+    VektorStyle style;
+    int z_index;
+    VektorBBox bbox;
+    VektorPrimitive primitive;
+
+    V2* handles;
+    size_t handleCount;
+} VektorShape;
+
 VektorPolyline* vektor_polyline_new(void);
 void vektor_polyline_add_point(VektorPolyline* pl, V2 point);
 void vektor_polyline_free(VektorPolyline* pl);
@@ -63,22 +83,7 @@ void vektor_rectangle_set_end(VektorRectangle* rct, V2 point);
 void vektor_rectangle_set_start(VektorRectangle* rct, V2 point);
 void vektor_rectangle_free(VektorRectangle* rct);
 
-typedef struct {
-    VektorColor stroke_color;
-    float stroke_width;
-} VektorStyle;
-
-typedef struct {
-    V2 min;
-    V2 max;
-} VektorBBox;
-
-typedef struct {
-    VektorStyle style;
-    int z_index;
-    VektorBBox bbox;
-    VektorPrimitive primitive;
-} VektorShape;
+VektorShape vektor_shape_new(VektorPrimitive prim, VektorStyle style, int z_index);
 
 VektorBBox vektor_polyline_get_bbox(VektorPrimitive prim);
 VektorBBox vektor_polygon_get_bbox(VektorPrimitive prim);
@@ -87,9 +92,21 @@ VektorBBox vektor_rectangle_get_bbox(VektorPrimitive prim);
 
 VektorBBox vektor_primitive_get_bbox(VektorPrimitive prim);
 bool vektor_bbox_isinside(VektorBBox bbox, V2 point);
+VektorBBox vektor_bbox_fromcenter(V2 center, float dist);
 
-VektorShape vektor_shape_new(VektorPrimitive prim, VektorStyle style,
-                             int z_index);
+// shape handles
+void vektor_polyline_create_handles(VektorPolyline* polyline, V2** handleArr, size_t* count);
+void vektor_polygon_create_handles(VektorPolygon* polygon, V2** handleArr, size_t* count);
+void vektor_circle_create_handles(VektorCircle* circle, V2** handleArr, size_t* count);
+void vektor_rectangle_create_handles(VektorRectangle* rectangle, V2** handleArr, size_t* count);
+void vektor_shape_create_handles(VektorShape* shape);
+
+    /* reconstructs the shape based on handles alone */
+void vektor_polyline_handles_updated(VektorPolyline* polyline, V2** handles, size_t* count);
+void vektor_polygon_handles_updated(VektorPolygon* polygon, V2** handles, size_t* count);
+void vektor_circle_handles_updated(VektorCircle* circle, V2** handles, size_t* count);
+void vektor_rectangle_handles_updated(VektorRectangle* rectangle, V2** handles, size_t* count);
+void vektor_shape_handles_updated(VektorShape* shape);
 
 typedef struct {
     VektorShape* shapes;

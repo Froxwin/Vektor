@@ -48,16 +48,16 @@ static inline double vec2_cross(const V2 a, const V2 b) {
     return a.x * b.y - a.y * b.x;
 }
 
-static inline double vec2_norm(const V2 v) {
+static inline double vec2_length(const V2 v) {
     return sqrt(v.x * v.x + v.y * v.y);
 }
 
-static inline double vec2_quadrance(const V2 v) {
+static inline double vec2_lengthsq(const V2 v) {
     return (v.x * v.x + v.y * v.y);
 }
 
 static inline V2 vec2_normalize(const V2 v) {
-    return vec2_scale(v, 1 / vec2_norm(v));
+    return vec2_scale(v, 1 / vec2_length(v));
 }
 
 #endif // VECTOR_H_

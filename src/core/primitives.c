@@ -1,8 +1,11 @@
 #include "primitives.h"
+#include "glib.h"
 #include "src/core/vector.h"
 #include <assert.h>
 #include <math.h>
 #include <stddef.h>
+
+// ------ PER-PRIMITIVE METHODS ------
 
 VektorPolyline* vektor_polyline_new(void) {
     VektorPolyline* pl = malloc(sizeof(VektorPolyline));
@@ -95,22 +98,6 @@ void vektor_rectangle_set_start(VektorRectangle* rct, V2 point) {
 
 void vektor_rectangle_free(VektorRectangle* rct) { free(rct); }
 
-void vektor_shapebuffer_add_shape(VektorShapeBuffer* buffer,
-                                  VektorShape shape) {
-    if (buffer->count >= buffer->capacity) {
-        buffer->capacity = buffer->capacity ? buffer->capacity * 2 : 4;
-        buffer->shapes =
-            realloc(buffer->shapes, sizeof(VektorShape) * buffer->capacity);
-    }
-    buffer->shapes[buffer->count++] = shape;
-
-    if (buffer->count <= buffer->capacity / 4) {
-        buffer->capacity /= 2;
-        buffer->shapes =
-            realloc(buffer->shapes, sizeof(VektorShape) * buffer->capacity);
-    }
-}
-
 VektorBBox vektor_polyline_get_bbox(VektorPrimitive prim) {
     V2 first = prim.polyline->points[0];
 
@@ -188,10 +175,166 @@ VektorBBox vektor_primitive_get_bbox(VektorPrimitive prim) {
     }
 }
 
+// ------ PRIMITIVE HANDLES GENERATION ------
+
+/* [n]: polyline vertices */
+void vektor_polyline_create_handles(VektorPolyline* polyline, V2** handleArr, size_t* count) {
+    *count = 0;
+    *handleArr = NULL;
+}
+
+/* [n]: polygon vertices */
+void vektor_polygon_create_handles(VektorPolygon* polygon, V2** handleArr, size_t* count) {
+    *count = 0;
+    *handleArr = NULL;
+}
+
+/* [0]: center; [1]: radius */
+void vektor_circle_create_handles(VektorCircle* circle, V2** handleArr, size_t* count) {
+    *count = 2;
+    *handleArr = (V2*)malloc(sizeof(V2)*(*count));
+    (*handleArr)[0] = circle->center;
+    (*handleArr)[1] = (V2){circle->radius + circle->center.x, circle->center.y};
+}
+
+/* [0]: center; [1-4]: corners (l2r, t2b); */
+void vektor_rectangle_create_handles(VektorRectangle* rectangle, V2** handleArr, size_t* count) {
+    *count = 5;
+    free(*handleArr);
+    *handleArr = (V2*)malloc(sizeof(V2)*(*count));
+    
+    V2 halfdist = vec2_scale(vec2_sub(rectangle->end, rectangle->start), 0.5f);
+    V2 center = vec2_add(rectangle->start, halfdist);
+
+    (*handleArr)[0] = center;
+    (*handleArr)[1] = vec2_add( center, vec2_mul(halfdist, (V2){-1.0f, 1.0f}) );
+    (*handleArr)[2] = vec2_add( center, halfdist);
+    (*handleArr)[3] = vec2_add( center, vec2_mul(halfdist, (V2){-1.0f, -1.0f}) );
+    (*handleArr)[4] = vec2_add( center, vec2_mul(halfdist, (V2){1.0f, -1.0f}) );
+}
+
+void vektor_shape_create_handles(VektorShape* shape) {
+    switch(shape->primitive.kind) {
+        case VEKTOR_POLYLINE:
+            vektor_polyline_create_handles(shape->primitive.polyline, &shape->handles, &shape->handleCount);
+            break;
+        case VEKTOR_POLYGON:
+            vektor_polygon_create_handles(shape->primitive.polygon, &shape->handles, &shape->handleCount);
+            break;
+        case VEKTOR_CIRCLE:
+            vektor_circle_create_handles(&shape->primitive.circle, &shape->handles, &shape->handleCount);
+            break;
+        case VEKTOR_RECTANGLE:
+            vektor_rectangle_create_handles(&shape->primitive.rectangle, &shape->handles, &shape->handleCount);
+            break;
+    }
+}
+
+// ------ PRIMITIVE HANDLES UPDATING ------
+
+void vektor_polyline_handles_updated(VektorPolyline* polyline, V2** handles, size_t* count) {
+    if(*count != polyline->count) {
+        g_warning("handle count & point count mismatch in polyline");
+        return;
+    }
+    for(size_t i = 0; i < *count; i++) {
+        polyline->points[i] = (*handles)[i];
+    }
+}
+
+void vektor_polygon_handles_updated(VektorPolygon* polygon, V2** handles, size_t* count) {
+    if(*count != polygon->count) {
+        g_warning("handle count & point count mismatch in polygon");
+        return;
+    }
+    for(size_t i = 0; i < *count; i++) {
+        polygon->points[i] = (*handles)[i];
+    }
+}
+
+void vektor_circle_handles_updated(VektorCircle* circle, V2** handles, size_t* count) {
+    if(*count != 2) {
+        g_warning("unexpected circle handle count (%zu)", *count);
+        return;
+    }
+    circle->center = (*handles)[0];
+    circle->radius = vec2_length(vec2_sub((*handles)[0], (*handles)[1]));
+}
+
+void vektor_rectangle_handles_updated(VektorRectangle* rectangle, V2** handles, size_t* count) {
+    if(*count != 5) {
+        g_warning("unexpected rectangle handle count (%zu)", *count);
+        return;
+    }
+    
+    // get rectangle center
+    V2 halfdist = vec2_scale(vec2_sub(rectangle->end, rectangle->start), 0.5f);
+    V2 rectcenter = vec2_add(rectangle->start, halfdist);
+
+    // center according to handles
+    V2 center = (*handles)[0];
+
+    if(vec2_equals(center, rectcenter)) { // corner handles were changed
+        V2 p1 = (*handles)[1];
+        V2 p2 = (*handles)[2];
+        V2 p3 = (*handles)[3];
+        V2 p4 = (*handles)[4];
+
+        float min_x = fminf(p1.x, fminf(p2.x, fminf(p3.x, p4.x)));
+        float min_y = fminf(p1.y, fminf(p2.y, fminf(p3.y, p4.y)));
+        float max_x = fmaxf(p1.x, fmaxf(p2.x, fmaxf(p3.x, p4.x)));
+        float max_y = fmaxf(p1.y, fmaxf(p2.y, fmaxf(p3.y, p4.y)));
+
+        V2 min = (V2){min_x, min_y};
+        V2 max = (V2){max_x, max_y};
+
+        VektorRectangle propertRect = (VektorRectangle){min,max};
+        // overwrite handles array (create_handles() frees the passed one)
+        vektor_rectangle_create_handles(&propertRect, handles, count);
+
+    } else { // corner was dragged
+        V2 translation = vec2_sub(center, rectcenter);
+        V2 newmax = vec2_add((*handles)[2], translation);
+        V2 newmin = vec2_add((*handles)[3], translation);
+
+        VektorRectangle propertRect = (VektorRectangle){newmin,newmax};
+        vektor_rectangle_create_handles(&propertRect, handles, count);
+    }
+    
+}
+
+void vektor_shape_handles_updated(VektorShape* shape) {
+    switch(shape->primitive.kind) {
+        case VEKTOR_POLYLINE:
+            vektor_polyline_handles_updated(shape->primitive.polyline, &shape->handles, &shape->handleCount);
+            break;
+        case VEKTOR_POLYGON:
+            vektor_polygon_handles_updated(shape->primitive.polygon, &shape->handles, &shape->handleCount);
+            break;
+        case VEKTOR_CIRCLE:
+            vektor_circle_handles_updated(&shape->primitive.circle, &shape->handles, &shape->handleCount);
+            break;
+        case VEKTOR_RECTANGLE:
+            vektor_rectangle_handles_updated(&shape->primitive.rectangle, &shape->handles, &shape->handleCount);
+            break;
+    }
+}
+
+// ------ BBOX METHODS ------
+
 bool vektor_bbox_isinside(VektorBBox bbox, V2 point) {
     return point.x >= bbox.min.x && point.y >= bbox.min.y &&
            point.x <= bbox.max.x && point.y <= bbox.max.y;
 }
+
+VektorBBox vektor_bbox_fromcenter(V2 center, float dist) {
+    V2 v2dist = vec2_fromfloat(dist);
+    V2 min = vec2_sub(center, v2dist);
+    V2 max = vec2_add(center, v2dist);
+    return (VektorBBox){min,max};
+}
+
+// ------ SHAPE METHODS ------
 
 VektorShape vektor_shape_new(VektorPrimitive prim, VektorStyle style,
                              int z_index) {
@@ -205,5 +348,21 @@ void vektor_shapes_update_bbox(VektorShapeBuffer* buffer) {
     for (size_t i = 0; i < buffer->count; i++) {
         buffer->shapes[i].bbox =
             vektor_primitive_get_bbox(buffer->shapes[i].primitive);
+    }
+}
+
+void vektor_shapebuffer_add_shape(VektorShapeBuffer* buffer,
+                                  VektorShape shape) {
+    if (buffer->count >= buffer->capacity) {
+        buffer->capacity = buffer->capacity ? buffer->capacity * 2 : 4;
+        buffer->shapes =
+            realloc(buffer->shapes, sizeof(VektorShape) * buffer->capacity);
+    }
+    buffer->shapes[buffer->count++] = shape;
+
+    if (buffer->count <= buffer->capacity / 4) {
+        buffer->capacity /= 2;
+        buffer->shapes =
+            realloc(buffer->shapes, sizeof(VektorShape) * buffer->capacity);
     }
 }

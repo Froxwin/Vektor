@@ -90,9 +90,6 @@ static void canvas_onclick(GtkGestureClick* gesture, int n_press, double x,
     int widget_w = gtk_widget_get_width(widget);
     int widget_h = gtk_widget_get_height(widget);
 
-    int canvas_w = state->canvas->width;
-    int canvas_h = state->canvas->height;
-
     V2 normalized_coords =
         (V2){(2 * (x / widget_w)) - 1, 1 - (2 * (y / widget_h))};
 
@@ -163,15 +160,14 @@ begin_click_dispatch:
         VektorCircle* circle = vektor_circle_new();
         VektorPrimitive circlePrimitive =
             (VektorPrimitive){.kind = VEKTOR_CIRCLE, .circle = *circle};
-        VektorStyle style = (VektorStyle){
-            .stroke_color = state->currentColor, .stroke_width = 0.01};
+        VektorStyle style = (VektorStyle){.stroke_color = state->currentColor,
+                                          .stroke_width = 0.01};
         vektor_shapebuffer_add_shape(
-            state->shapeBuffer,
-            vektor_shape_new(circlePrimitive, style, 0));
+            state->shapeBuffer, vektor_shape_new(circlePrimitive, style, 0));
 
         state->selectedShape =
             &(state->shapeBuffer->shapes[state->shapeBuffer->count - 1]);
-        
+
         vektor_circle_free(circle);
 
         vektor_circle_set_center(&state->selectedShape->primitive.circle, pos);
@@ -211,6 +207,36 @@ begin_click_dispatch:
         // was clicked outside any shapes - reset selection
         state->selectedShape = NULL;
     }
+}
+
+void vektor_appstate_canvas_drag_begin(GtkGestureDrag* gesture, gdouble x,
+                                       gdouble y, gpointer user_data) {
+    GtkWidget* widget =
+        gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(gesture));
+
+    int widget_w = gtk_widget_get_width(widget);
+    int widget_h = gtk_widget_get_height(widget);
+
+    V2 normalized_coords =
+        (V2){(2 * (x / widget_w)) - 1, 1 - (2 * (y / widget_h))};
+
+}
+
+void vektor_appstate_canvas_drag_update(GtkGestureDrag* gesture,
+                                        gdouble x, gdouble y,
+                                        gpointer user_data) {
+    gdouble start_x, start_y;
+    gtk_gesture_drag_get_start_point(gesture, &start_x, &start_y);
+
+    GtkWidget* widget =
+        gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(gesture));
+
+    int widget_w = gtk_widget_get_width(widget);
+    int widget_h = gtk_widget_get_height(widget);
+
+    V2 norm =
+        (V2){(2 * ( (x+start_x) / widget_w)) - 1, 1 - (2 * ( (y+start_y) / widget_h))};
+    
 }
 
 void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
@@ -302,4 +328,14 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
                      G_CALLBACK(canvas_onclick), stateOut);
     gtk_widget_add_controller(GTK_WIDGET(wstate->workspaceCanvas),
                               GTK_EVENT_CONTROLLER(canvasClickGesture));
+
+    // Add drag gesture to canvas
+    GtkGesture* canvasDragGesture = gtk_gesture_drag_new();
+    g_signal_connect(G_OBJECT(canvasDragGesture), "drag-update",
+                     G_CALLBACK(vektor_appstate_canvas_drag_update), stateOut);
+    g_signal_connect(G_OBJECT(canvasDragGesture), "drag-begin",
+                     G_CALLBACK(vektor_appstate_canvas_drag_begin), stateOut);
+
+    gtk_widget_add_controller(GTK_WIDGET(wstate->workspaceCanvas),
+                              GTK_EVENT_CONTROLLER(canvasDragGesture));
 }

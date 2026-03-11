@@ -188,7 +188,7 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
         glUniform1f(shader_selection_uTimeLoc, time);
         glUniform2f(shader_selection_uMinLoc, bbox.min.x, bbox.min.y);
         glUniform2f(shader_selection_uMaxLoc, bbox.max.x, bbox.max.y);
-        glUniform4f(shader_selection_uC1Loc, 0, 0, 0, 1);
+        glUniform4f(shader_selection_uC1Loc, 0, 0, 0, 0);
         glUniform4f(shader_selection_uC2Loc, 0.46, 0.46, 1, 1);
 
         glDrawArrays(GL_TRIANGLES, shape_vertex_count,
