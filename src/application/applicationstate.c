@@ -281,7 +281,7 @@ void vektor_appstate_canvas_drag_update(GtkGestureDrag* gesture, gdouble x,
     // drag handle if selected
     if(state->selectedShape != NULL && state->heldHandleIndex != -1) {
         state->selectedShape->handles[state->heldHandleIndex] = position;
-        vektor_shape_handles_updated(state->selectedShape);
+        vektor_shape_handles_updated(state->selectedShape, &state->heldHandleIndex);
     }
 }
 

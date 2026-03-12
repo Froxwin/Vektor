@@ -115,14 +115,14 @@ VektorBBox vektor_shape_get_handle_bbox(V2 handle);
 
 /* reconstructs the shape based on handles alone */
 void vektor_polyline_handles_updated(VektorPolyline* polyline, V2** handles,
-                                     size_t* count);
+                                     size_t* count, int* heldHandleIndex);
 void vektor_polygon_handles_updated(VektorPolygon* polygon, V2** handles,
-                                    size_t* count);
+                                    size_t* count, int* heldHandleIndex);
 void vektor_circle_handles_updated(VektorCircle* circle, V2** handles,
-                                   size_t* count);
+                                   size_t* count, int* heldHandleIndex);
 void vektor_rectangle_handles_updated(VektorRectangle* rectangle, V2** handles,
-                                      size_t* count);
-void vektor_shape_handles_updated(VektorShape* shape);
+                                      size_t* count, int* heldHandleIndex);
+void vektor_shape_handles_updated(VektorShape* shape, int* heldHandleIndex);
 
 typedef struct {
     VektorShape* shapes;
