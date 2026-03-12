@@ -21,6 +21,7 @@ typedef struct VektorAppState {
 
     VektorAppTool selectedTool;
     VektorShape* selectedShape;
+    int heldHandleIndex;
 
     VektorColor currentColor;
 
@@ -33,5 +34,6 @@ typedef struct VektorAppState {
 
 void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut);
 void vektor_appstate_canvas_click(VektorAppState* state, double x, double y);
+void vektor_appstate_deselect_shape(VektorAppState* state);
 
 #endif

@@ -207,8 +207,6 @@ void vektor_rectangle_create_handles(VektorRectangle* rectangle, V2** handleArr,
 
     V2 halfdist = vec2_scale(vec2_sub(rectangle->end, rectangle->start), 0.5f);
     V2 center = vec2_add(rectangle->start, halfdist);
-    g_print("boobs: %f %f\n", rectangle->start.x, rectangle->start.y);
-    g_print("pussy: %f %f\n", rectangle->end.x, rectangle->end.y);
 
     (*handleArr)[0] = center;
     (*handleArr)[1] = vec2_add(center, vec2_mul(halfdist, (V2){-1.0f, 1.0f}));
@@ -236,6 +234,23 @@ void vektor_shape_create_handles(VektorShape* shape) {
                                         &shape->handles, &shape->handleCount);
         break;
     }
+}
+
+// ------ AUXILIARY HANDLE METHODS ------
+
+
+void vektor_shape_add_handle(VektorShape* shape, V2 handle) {
+    // could be optimised with capacity property
+    // but this function is only called when adding new
+    // points to polyline and polygon, so it should
+    // not be that much of an overhead
+    shape->handles =
+        realloc(shape->handles, sizeof(V2) * shape->handleCount + 1);
+    shape->handles[shape->handleCount++] = handle;
+}
+
+VektorBBox vektor_shape_get_handle_bbox(V2 handle) {
+    return vektor_bbox_fromcenter(handle, 0.02);
 }
 
 // ------ PRIMITIVE HANDLES UPDATING ------
@@ -333,16 +348,6 @@ void vektor_shape_handles_updated(VektorShape* shape) {
                                          &shape->handles, &shape->handleCount);
         break;
     }
-}
-
-void vektor_shape_add_handle(VektorShape* shape, V2 handle) {
-    // could be optimised with capacity property
-    // but this function is only called when adding new
-    // points to polyline and polygon, so it should
-    // not be that much of an overhead
-    shape->handles =
-        realloc(shape->handles, sizeof(V2) * shape->handleCount + 1);
-    shape->handles[shape->handleCount++] = handle;
 }
 
 // ------ BBOX METHODS ------

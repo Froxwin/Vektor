@@ -108,7 +108,10 @@ void vektor_circle_create_handles(VektorCircle* circle, V2** handleArr,
 void vektor_rectangle_create_handles(VektorRectangle* rectangle, V2** handleArr,
                                      size_t* count);
 void vektor_shape_create_handles(VektorShape* shape);
+
+
 void vektor_shape_add_handle(VektorShape* shape, V2 handle);
+VektorBBox vektor_shape_get_handle_bbox(V2 handle);
 
 /* reconstructs the shape based on handles alone */
 void vektor_polyline_handles_updated(VektorPolyline* polyline, V2** handles,

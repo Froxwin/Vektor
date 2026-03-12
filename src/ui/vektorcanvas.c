@@ -151,7 +151,7 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
         // create handle quads if a shape is selected
         for (size_t i = 0; i < selectedShape->handleCount; i++) {
             V2 handle = selectedShape->handles[i];
-            VektorBBox handleBbox = vektor_bbox_fromcenter(handle, 0.01f);
+            VektorBBox handleBbox = vektor_shape_get_handle_bbox(handle);
             vektor_vb_add_quad(&vb, handleBbox.min, handleBbox.max,
                                vektor_color_new(255, 255, 255, 255));
         }

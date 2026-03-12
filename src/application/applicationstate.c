@@ -124,7 +124,7 @@ begin_click_dispatch:
             // selecting a tool resets the selection, so this condition
             // should not happen
             g_warning("Invalid selected primitive; polyline expected");
-            state->selectedShape = NULL;
+            vektor_appstate_deselect_shape(state);
             goto begin_click_dispatch; // retry
         }
 
@@ -153,7 +153,7 @@ begin_click_dispatch:
 
         } else if (state->selectedShape->primitive.kind != VEKTOR_POLYGON) {
             g_warning("Invalid selected primitive; polygon expected");
-            state->selectedShape = NULL;
+            vektor_appstate_deselect_shape(state);
             goto begin_click_dispatch; // retry
         }
 
@@ -215,17 +215,19 @@ begin_click_dispatch:
         for (size_t i = 0; i < state->shapeBuffer->count; i++) {
             VektorBBox bbox = vektor_primitive_get_bbox(
                 state->shapeBuffer->shapes[i].primitive);
+            
+            // expand the bbox a little so its not painful to
+            // try to grab handles located on the border of said bbox
+            bbox = vektor_bbox_expand(bbox, 0.02);
+
             if (vektor_bbox_isinside(bbox, pos)) {
                 state->selectedShape = &(state->shapeBuffer->shapes[i]);
                 return;
             }
         }
         // was clicked outside any shapes - reset selection
-        state->selectedShape = NULL;
+        vektor_appstate_deselect_shape(state);
     }
-
-    if (state->selectedShape != NULL)
-        g_print("%zu\n", state->selectedShape->handleCount);
 }
 
 void vektor_appstate_canvas_drag_begin(GtkGestureDrag* gesture, gdouble x,
@@ -233,26 +235,65 @@ void vektor_appstate_canvas_drag_begin(GtkGestureDrag* gesture, gdouble x,
     GtkWidget* widget =
         gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(gesture));
 
+    VektorAppState* state = (VektorAppState*)user_data;
+
     int widget_w = gtk_widget_get_width(widget);
     int widget_h = gtk_widget_get_height(widget);
 
-    V2 normalized_coords =
+    V2 position =
         (V2){(2 * (x / widget_w)) - 1, 1 - (2 * (y / widget_h))};
+
+    if(state->selectedShape != NULL) {
+        VektorShape* selectedShape = state->selectedShape;
+
+        // get selected shape's handles and check
+        // if we click any of them
+        for(size_t i = 0; i < selectedShape->handleCount; i++) {
+            VektorBBox bbox = vektor_shape_get_handle_bbox(selectedShape->handles[i]);
+            if(vektor_bbox_isinside(bbox, position)) {
+                 // clicked inside handle
+                state->heldHandleIndex = i;
+                break;
+            }
+        }
+
+    }
 }
 
 void vektor_appstate_canvas_drag_update(GtkGestureDrag* gesture, gdouble x,
                                         gdouble y, gpointer user_data) {
+
+    // ---- setup normalized coordinates (boilerplate) ----
     gdouble start_x, start_y;
     gtk_gesture_drag_get_start_point(gesture, &start_x, &start_y);
 
     GtkWidget* widget =
         gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(gesture));
 
+    VektorAppState* state = (VektorAppState*)user_data;
+
     int widget_w = gtk_widget_get_width(widget);
     int widget_h = gtk_widget_get_height(widget);
 
-    V2 norm = (V2){(2 * ((x + start_x) / widget_w)) - 1,
+    V2 position = (V2){(2 * ((x + start_x) / widget_w)) - 1,
                    1 - (2 * ((y + start_y) / widget_h))};
+
+    // drag handle if selected
+    if(state->selectedShape != NULL && state->heldHandleIndex != -1) {
+        state->selectedShape->handles[state->heldHandleIndex] = position;
+        vektor_shape_handles_updated(state->selectedShape);
+    }
+}
+
+void vektor_appstate_canvas_drag_end(GtkGestureDrag* gesture, gdouble x,
+                                        gdouble y, gpointer user_data) {
+
+    VektorAppState* state = (VektorAppState*)user_data;
+
+    // if we were dragging a handle
+    if(state->selectedShape != NULL && state->heldHandleIndex != -1) {
+        state->heldHandleIndex = -1; // ...then remove handle drag flag
+    }
 }
 
 void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
@@ -292,6 +333,7 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
     stateOut->widgetState = wstate;
     stateOut->currentColor = vektor_color_solid(0, 0, 0);
     stateOut->selectedShape = NULL;
+    stateOut->heldHandleIndex = -1;
 
     VektorCanvasRenderInfo* renderInfo = malloc(sizeof(VektorCanvasRenderInfo));
     renderInfo->zoom = 1;
@@ -351,7 +393,14 @@ void vektor_appstate_new(VektorWidgetState* wstate, VektorAppState* stateOut) {
                      G_CALLBACK(vektor_appstate_canvas_drag_update), stateOut);
     g_signal_connect(G_OBJECT(canvasDragGesture), "drag-begin",
                      G_CALLBACK(vektor_appstate_canvas_drag_begin), stateOut);
+    g_signal_connect(G_OBJECT(canvasDragGesture), "drag-end",
+                     G_CALLBACK(vektor_appstate_canvas_drag_end), stateOut);
 
     gtk_widget_add_controller(GTK_WIDGET(wstate->workspaceCanvas),
                               GTK_EVENT_CONTROLLER(canvasDragGesture));
+}
+
+void vektor_appstate_deselect_shape(VektorAppState* state) {
+    state->heldHandleIndex = -1;
+    state->selectedShape = NULL;
 }
