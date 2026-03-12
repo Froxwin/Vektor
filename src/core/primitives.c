@@ -288,10 +288,11 @@ void vektor_circle_handles_updated(VektorCircle* circle, V2** handles,
         V2 translation = vec2_sub((*handles)[0], circle->center);
         circle->center = (*handles)[0];
         (*handles)[1] = vec2_add(translation, (*handles)[1]);
+    } else {
+        circle->radius = vec2_length(vec2_sub((*handles)[0], (*handles)[1]));
     }
 
-    circle->center = (*handles)[0];
-    circle->radius = vec2_length(vec2_sub((*handles)[0], (*handles)[1]));
+    
 }
 
 // this shi is big because it dynamically handles handle remapping when
