@@ -61,8 +61,7 @@ static void appstate_on_color_change(VektorColorWheel* wheel,
     gtk_editable_set_text(GTK_EDITABLE(appstate->widgetState->sidepanelEntryB),
                           str_b);
 
-    /*gtk_gl_area_queue_render(
-        GTK_GL_AREA(appstate->widgetState->workspaceCanvas));*/
+    vektor_canvas_geometry_changed(appstate->renderInfo);
 }
 
 static void appstate_on_entry_update(GtkEntry* entry, gpointer user_data) {
@@ -96,7 +95,11 @@ static void canvas_onclick(GtkGestureClick* gesture, int n_press, double x,
     vektor_appstate_canvas_click(state, normalized_coords.x,
                                  normalized_coords.y);
 
-    // gtk_gl_area_queue_render(GTK_GL_AREA(widget));
+    // technically there are cases when a click would not result in change of the geometry
+    // but this is more concise then writing it inside that function
+    // a bunch of times and burder future click dispatches with
+    // handling this signal
+    vektor_canvas_geometry_changed(state->renderInfo);
 }
 
 void vektor_appstate_canvas_click(VektorAppState* state, double x, double y) {
@@ -253,6 +256,7 @@ void vektor_appstate_canvas_drag_begin(GtkGestureDrag* gesture, gdouble x,
             if(vektor_bbox_isinside(bbox, position)) {
                  // clicked inside handle
                 state->heldHandleIndex = i;
+                vektor_canvas_geometry_changed(state->renderInfo);
                 break;
             }
         }
@@ -282,6 +286,7 @@ void vektor_appstate_canvas_drag_update(GtkGestureDrag* gesture, gdouble x,
     if(state->selectedShape != NULL && state->heldHandleIndex != -1) {
         state->selectedShape->handles[state->heldHandleIndex] = position;
         vektor_shape_handles_updated(state->selectedShape, &state->heldHandleIndex);
+        vektor_canvas_geometry_changed(state->renderInfo);
     }
 }
 
@@ -293,6 +298,7 @@ void vektor_appstate_canvas_drag_end(GtkGestureDrag* gesture, gdouble x,
     // if we were dragging a handle
     if(state->selectedShape != NULL && state->heldHandleIndex != -1) {
         state->heldHandleIndex = -1; // ...then remove handle drag flag
+        vektor_canvas_geometry_changed(state->renderInfo);
     }
 }
 

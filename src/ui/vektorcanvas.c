@@ -45,6 +45,7 @@ static GLuint shader_selection_uMaxLoc;
 
 static GLuint vao;
 VertexBuffer vb;
+static size_t shape_vertex_count = 0;
 
 static GLuint compile_shader(GLenum type, const char* src) {
     GLuint shader = glCreateShader(type);
@@ -135,13 +136,11 @@ static void init_geometry(void) {
 
     glBindVertexArray(0);
 }
-static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
-                       VektorCanvasRenderInfo* renderInfo) {
-    vb.count = 0;
 
+void vektor_canvas_geometry_changed(VektorCanvasRenderInfo* renderInfo) {
+    vb.count = 0;
     vektor_rasterize(&vb, renderInfo->shapes, renderInfo->zoom);
-    size_t shape_vertex_count =
-        vb.count; // remember how many vertices belong to shapes
+    shape_vertex_count = vb.count;
 
     if (renderInfo->selectedShape != NULL &&
         *(renderInfo->selectedShape) != NULL) {
@@ -166,6 +165,13 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
         vektor_vb_add_quad(&vb, bbox.min, bbox.max,
                            vektor_color_new(255, 255, 255, 255));
     }
+}
+
+static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
+                       VektorCanvasRenderInfo* renderInfo) {
+    //vektor_canvas_geometry_changed(renderInfo);
+
+    
 
     glBufferData(GL_ARRAY_BUFFER, vb.count * sizeof(Vertex), vb.vertices,
                  GL_STATIC_DRAW);

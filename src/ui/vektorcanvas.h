@@ -44,6 +44,7 @@ typedef struct VektorCanvasRenderInfo {
 
 void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut,
                         VektorCanvasRenderInfo* renderInfo);
+void vektor_canvas_geometry_changed(VektorCanvasRenderInfo* renderInfo);
 // void vektor_canvas_update(VektorCanvas* canvas);
 // void vektor_canvas_fill(VektorCanvas* canvas, VektorColor color);
 // void vektor_canvas_drawfrom(VektorFramebuffer* fb, VektorCanvas* canvas);
