@@ -238,7 +238,6 @@ void vektor_shape_create_handles(VektorShape* shape) {
 
 // ------ AUXILIARY HANDLE METHODS ------
 
-
 void vektor_shape_add_handle(VektorShape* shape, V2 handle) {
     // could be optimised with capacity property
     // but this function is only called when adding new
@@ -284,66 +283,64 @@ void vektor_circle_handles_updated(VektorCircle* circle, V2** handles,
         return;
     }
 
-    if(*heldHandleIndex == 0) { // dragging center
+    if (*heldHandleIndex == 0) { // dragging center
         V2 translation = vec2_sub((*handles)[0], circle->center);
         circle->center = (*handles)[0];
         (*handles)[1] = vec2_add(translation, (*handles)[1]);
     } else {
         circle->radius = vec2_length(vec2_sub((*handles)[0], (*handles)[1]));
     }
-
-    
 }
 
 // this shi is big because it dynamically handles handle remapping when
 // rectangle enters an invalid state (end < start)
 // creating the illusion of an invertable rect, while also keeping it
 // valid at all times
-void vektor_rectangle_handles_updated(VektorRectangle* rectangle, V2** handles, size_t* count, int* heldHandleIndex) {
+void vektor_rectangle_handles_updated(VektorRectangle* rectangle, V2** handles,
+                                      size_t* count, int* heldHandleIndex) {
     if (*count != 5) {
         g_warning("unexpected rectangle handle count (%zu)", *count);
         return;
     }
 
     V2 start = rectangle->start;
-    V2 end   = rectangle->end;
+    V2 end = rectangle->end;
 
-    switch (*heldHandleIndex)
+    switch (*heldHandleIndex) {
+    case 0: // center drag
     {
-        case 0: // center drag
-        {
-            V2 oldCenter = vec2_scale(vec2_add(start, end), 0.5f);
-            V2 newCenter = (*handles)[0];
+        V2 oldCenter = vec2_scale(vec2_add(start, end), 0.5f);
+        V2 newCenter = (*handles)[0];
 
-            V2 translation = vec2_sub(newCenter, oldCenter);
+        V2 translation = vec2_sub(newCenter, oldCenter);
 
-            start = vec2_add(start, translation);
-            end   = vec2_add(end, translation);
-            break;
-        }
+        start = vec2_add(start, translation);
+        end = vec2_add(end, translation);
+        break;
+    }
 
-        case 1: // top-left
-            start.x = (*handles)[1].x;
-            end.y   = (*handles)[1].y;
-            break;
+    case 1: // top-left
+        start.x = (*handles)[1].x;
+        end.y = (*handles)[1].y;
+        break;
 
-        case 2: // top-right
-            end.x = (*handles)[2].x;
-            end.y = (*handles)[2].y;
-            break;
+    case 2: // top-right
+        end.x = (*handles)[2].x;
+        end.y = (*handles)[2].y;
+        break;
 
-        case 3: // bottom-left
-            start.x = (*handles)[3].x;
-            start.y = (*handles)[3].y;
-            break;
+    case 3: // bottom-left
+        start.x = (*handles)[3].x;
+        start.y = (*handles)[3].y;
+        break;
 
-        case 4: // bottom-right
-            end.x   = (*handles)[4].x;
-            start.y = (*handles)[4].y;
-            break;
+    case 4: // bottom-right
+        end.x = (*handles)[4].x;
+        start.y = (*handles)[4].y;
+        break;
 
-        default:
-            return;
+    default:
+        return;
     }
 
     // Store raw values before normalization
@@ -362,31 +359,44 @@ void vektor_rectangle_handles_updated(VektorRectangle* rectangle, V2** handles, 
     bool flipY = raw_min_y > raw_max_y;
 
     // Remap handle if we crossed axes
-    if (*heldHandleIndex != 0)
-    {
+    if (*heldHandleIndex != 0) {
         if (flipX) {
             switch (*heldHandleIndex) {
-                case 1: *heldHandleIndex = 2; break;
-                case 2: *heldHandleIndex = 1; break;
-                case 3: *heldHandleIndex = 4; break;
-                case 4: *heldHandleIndex = 3; break;
+            case 1:
+                *heldHandleIndex = 2;
+                break;
+            case 2:
+                *heldHandleIndex = 1;
+                break;
+            case 3:
+                *heldHandleIndex = 4;
+                break;
+            case 4:
+                *heldHandleIndex = 3;
+                break;
             }
         }
 
         if (flipY) {
             switch (*heldHandleIndex) {
-                case 1: *heldHandleIndex = 3; break;
-                case 3: *heldHandleIndex = 1; break;
-                case 2: *heldHandleIndex = 4; break;
-                case 4: *heldHandleIndex = 2; break;
+            case 1:
+                *heldHandleIndex = 3;
+                break;
+            case 3:
+                *heldHandleIndex = 1;
+                break;
+            case 2:
+                *heldHandleIndex = 4;
+                break;
+            case 4:
+                *heldHandleIndex = 2;
+                break;
             }
         }
     }
 
-    VektorRectangle properRect = {
-        .start = {min_x, min_y},
-        .end   = {max_x, max_y}
-    };
+    VektorRectangle properRect = {.start = {min_x, min_y},
+                                  .end = {max_x, max_y}};
 
     vektor_rectangle_set_start(rectangle, properRect.start);
     vektor_rectangle_set_end(rectangle, properRect.end);
@@ -399,11 +409,13 @@ void vektor_shape_handles_updated(VektorShape* shape, int* heldHandleIndex) {
     switch (shape->primitive.kind) {
     case VEKTOR_POLYLINE:
         vektor_polyline_handles_updated(shape->primitive.polyline,
-                                        &shape->handles, &shape->handleCount, heldHandleIndex);
+                                        &shape->handles, &shape->handleCount,
+                                        heldHandleIndex);
         break;
     case VEKTOR_POLYGON:
         vektor_polygon_handles_updated(shape->primitive.polygon,
-                                       &shape->handles, &shape->handleCount, heldHandleIndex);
+                                       &shape->handles, &shape->handleCount,
+                                       heldHandleIndex);
         break;
     case VEKTOR_CIRCLE:
         vektor_circle_handles_updated(&shape->primitive.circle, &shape->handles,
@@ -411,7 +423,8 @@ void vektor_shape_handles_updated(VektorShape* shape, int* heldHandleIndex) {
         break;
     case VEKTOR_RECTANGLE:
         vektor_rectangle_handles_updated(&shape->primitive.rectangle,
-                                         &shape->handles, &shape->handleCount, heldHandleIndex);
+                                         &shape->handles, &shape->handleCount,
+                                         heldHandleIndex);
         break;
     }
 }

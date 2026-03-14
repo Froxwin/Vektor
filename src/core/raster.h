@@ -51,8 +51,8 @@ void vektor_vb_add_quad(VertexBuffer* vb, V2 v0, V2 v1, VektorColor color);
 void vektor_edge_to_triangles(VertexBuffer* vb, Edge e,
                               VektorShapeNodeBuffer* node_buffer);
 void vektor_edges_to_triangles(VertexBuffer* vb, EdgeBuffer* edges,
-                               VektorShapeNodeBuffer* node_buffer) ;
-void vektor_vb_rasterize(VertexBuffer* vb, VektorShapeNodeBuffer* shapes,
+                               M33* transform, VektorStyle style, bool closed);
+void vektor_rasterize(VertexBuffer* vb, VektorShapeBuffer* shapes,
                       double scale);
 
 #endif // RASTER_H_

@@ -38,6 +38,7 @@ static GLuint shader_standard_uProjMatrixLoc;
 
 static GLuint shader_selection_uProjMatrixLoc;
 static GLuint shader_selection_uTimeLoc;
+static GLuint shader_selection_uScaleLoc;
 static GLuint shader_selection_uC1Loc;
 static GLuint shader_selection_uC2Loc;
 static GLuint shader_selection_uMinLoc;
@@ -103,6 +104,8 @@ static void init_shader(void) {
         glGetUniformLocation(selection_shader_program, "uProjection");
     shader_selection_uTimeLoc =
         glGetUniformLocation(selection_shader_program, "uTime");
+    shader_selection_uScaleLoc =
+        glGetUniformLocation(selection_shader_program, "uScale");
     shader_selection_uC1Loc =
         glGetUniformLocation(selection_shader_program, "uColor1");
     shader_selection_uC2Loc =
@@ -169,9 +172,7 @@ void vektor_canvas_geometry_changed(VektorCanvasRenderInfo* renderInfo) {
 
 static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
                        VektorCanvasRenderInfo* renderInfo) {
-    //vektor_canvas_geometry_changed(renderInfo);
-
-    
+    // vektor_canvas_geometry_changed(renderInfo);
 
     glBufferData(GL_ARRAY_BUFFER, vb.count * sizeof(Vertex), vb.vertices,
                  GL_STATIC_DRAW);
@@ -186,7 +187,7 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
 
     glBindVertexArray(vao);
     glDisable(GL_CULL_FACE);
-
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -207,6 +208,7 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
         glUniformMatrix4fv(shader_selection_uProjMatrixLoc, 1, GL_FALSE,
                            renderInfo->canvasTransform);
         glUniform1f(shader_selection_uTimeLoc, time);
+        glUniform1f(shader_selection_uScaleLoc, renderInfo->zoom);
         glUniform2f(shader_selection_uMinLoc, bbox.min.x, bbox.min.y);
         glUniform2f(shader_selection_uMaxLoc, bbox.max.x, bbox.max.y);
         glUniform4f(shader_selection_uC1Loc, 0, 0, 0, 0);
