@@ -169,9 +169,7 @@ void vektor_canvas_geometry_changed(VektorCanvasRenderInfo* renderInfo) {
 
 static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
                        VektorCanvasRenderInfo* renderInfo) {
-    //vektor_canvas_geometry_changed(renderInfo);
-
-    
+    // vektor_canvas_geometry_changed(renderInfo);
 
     glBufferData(GL_ARRAY_BUFFER, vb.count * sizeof(Vertex), vb.vertices,
                  GL_STATIC_DRAW);
@@ -186,7 +184,7 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
 
     glBindVertexArray(vao);
     glDisable(GL_CULL_FACE);
-
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 

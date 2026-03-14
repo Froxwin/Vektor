@@ -95,9 +95,9 @@ static void canvas_onclick(GtkGestureClick* gesture, int n_press, double x,
     vektor_appstate_canvas_click(state, normalized_coords.x,
                                  normalized_coords.y);
 
-    // technically there are cases when a click would not result in change of the geometry
-    // but this is more concise then writing it inside that function
-    // a bunch of times and burder future click dispatches with
+    // technically there are cases when a click would not result in change of
+    // the geometry but this is more concise then writing it inside that
+    // function a bunch of times and burder future click dispatches with
     // handling this signal
     vektor_canvas_geometry_changed(state->renderInfo);
 }
@@ -218,7 +218,7 @@ begin_click_dispatch:
         for (size_t i = 0; i < state->shapeBuffer->count; i++) {
             VektorBBox bbox = vektor_primitive_get_bbox(
                 state->shapeBuffer->shapes[i].primitive);
-            
+
             // expand the bbox a little so its not painful to
             // try to grab handles located on the border of said bbox
             bbox = vektor_bbox_expand(bbox, 0.02);
@@ -243,26 +243,25 @@ void vektor_appstate_canvas_drag_begin(GtkGestureDrag* gesture, gdouble x,
     int widget_w = gtk_widget_get_width(widget);
     int widget_h = gtk_widget_get_height(widget);
 
-    V2 position =
-        (V2){(2 * (x / widget_w)) - 1, 1 - (2 * (y / widget_h))};
-    position =
-        m33_transform(m33_inverse(state->renderInfo->canvasMat), (V2){position.x, position.y});
+    V2 position = (V2){(2 * (x / widget_w)) - 1, 1 - (2 * (y / widget_h))};
+    position = m33_transform(m33_inverse(state->renderInfo->canvasMat),
+                             (V2){position.x, position.y});
 
-    if(state->selectedShape != NULL) {
+    if (state->selectedShape != NULL) {
         VektorShape* selectedShape = state->selectedShape;
 
         // get selected shape's handles and check
         // if we click any of them
-        for(size_t i = 0; i < selectedShape->handleCount; i++) {
-            VektorBBox bbox = vektor_shape_get_handle_bbox(selectedShape->handles[i]);
-            if(vektor_bbox_isinside(bbox, position)) {
-                 // clicked inside handle
+        for (size_t i = 0; i < selectedShape->handleCount; i++) {
+            VektorBBox bbox =
+                vektor_shape_get_handle_bbox(selectedShape->handles[i]);
+            if (vektor_bbox_isinside(bbox, position)) {
+                // clicked inside handle
                 state->heldHandleIndex = i;
                 vektor_canvas_geometry_changed(state->renderInfo);
                 break;
             }
         }
-
     }
 }
 
@@ -282,25 +281,26 @@ void vektor_appstate_canvas_drag_update(GtkGestureDrag* gesture, gdouble x,
     int widget_h = gtk_widget_get_height(widget);
 
     V2 position = (V2){(2 * ((x + start_x) / widget_w)) - 1,
-                   1 - (2 * ((y + start_y) / widget_h))};
-    position =
-        m33_transform(m33_inverse(state->renderInfo->canvasMat), (V2){position.x, position.y});
+                       1 - (2 * ((y + start_y) / widget_h))};
+    position = m33_transform(m33_inverse(state->renderInfo->canvasMat),
+                             (V2){position.x, position.y});
 
     // drag handle if selected
-    if(state->selectedShape != NULL && state->heldHandleIndex != -1) {
+    if (state->selectedShape != NULL && state->heldHandleIndex != -1) {
         state->selectedShape->handles[state->heldHandleIndex] = position;
-        vektor_shape_handles_updated(state->selectedShape, &state->heldHandleIndex);
+        vektor_shape_handles_updated(state->selectedShape,
+                                     &state->heldHandleIndex);
         vektor_canvas_geometry_changed(state->renderInfo);
     }
 }
 
 void vektor_appstate_canvas_drag_end(GtkGestureDrag* gesture, gdouble x,
-                                        gdouble y, gpointer user_data) {
+                                     gdouble y, gpointer user_data) {
 
     VektorAppState* state = (VektorAppState*)user_data;
 
     // if we were dragging a handle
-    if(state->selectedShape != NULL && state->heldHandleIndex != -1) {
+    if (state->selectedShape != NULL && state->heldHandleIndex != -1) {
         state->heldHandleIndex = -1; // ...then remove handle drag flag
         vektor_canvas_geometry_changed(state->renderInfo);
     }

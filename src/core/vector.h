@@ -20,6 +20,10 @@ static inline V3 vec2_vector(const V2 v) { return (V3){v.x, v.y, 0}; }
 
 static inline V3 vec2_point(const V2 v) { return (V3){v.x, v.y, 1}; }
 
+static inline V2 vec2_perp(const V2 v) { return (V2){-v.y, v.x}; }
+
+static inline V2 vec2_negate(const V2 v) { return (V2){-v.x, -v.y}; }
+
 static inline V2 vec2_add(const V2 v1, const V2 v2) {
     return (V2){v1.x + v2.x, v1.y + v2.y};
 }
