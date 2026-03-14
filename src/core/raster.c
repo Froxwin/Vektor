@@ -41,7 +41,7 @@ void vektor_polygon_tessellate(EdgeBuffer* buffer, VektorPolygon* polygon,
 void vektor_circle_tessellate(EdgeBuffer* buffer, VektorCircle* circle,
                               size_t j, double scale) {
     double err = 0.0025;
-    size_t res = MIN(PI * sqrt((scale * circle->radius) / (2 * err)), 20);
+    size_t res = PI * sqrt((scale * circle->radius) / (2 * err));
     for (size_t i = 0; i < res; i++) {
         double theta1 = (2 * PI * i) / res;
         double theta2 = (2 * PI * (i + 1)) / res;
@@ -71,7 +71,7 @@ void vektor_rectangle_tessellate(EdgeBuffer* buffer, VektorRectangle* rct,
 }
 
 void vektor_vb_rasterize(VertexBuffer* vb, VektorShapeNodeBuffer* nodebuf,
-                      double scale) {
+                         double scale) {
     for (size_t i = 0; i < nodebuf->count; i++) {
         EdgeBuffer edges = {0};
         VektorPrimitive* p = &nodebuf->nodes[i].base.primitive;
@@ -104,7 +104,6 @@ void vektor_vb_rasterize(VertexBuffer* vb, VektorShapeNodeBuffer* nodebuf,
             break;
         }
     }
-
 }
 
 void vektor_vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2,
@@ -201,6 +200,24 @@ void vektor_edges_to_triangles(VertexBuffer* vb, EdgeBuffer* edges,
         V2 v21 = vec2_sub(e2.p1, off2);
         V2 v22 = vec2_add(e2.p2, off2);
         V2 v23 = vec2_sub(e2.p2, off2);
+
+        V2 outer1 = vec2_add(corner, off1);
+        V2 outer2 = vec2_add(corner, off2);
+
+        V2 inner1 = vec2_sub(corner, off1);
+        V2 inner2 = vec2_sub(corner, off2);
+
+        float cos_theta = vec2_dot(d1, d2);
+        float sin_half = sqrtf((1.0f - cos_theta) * 0.5f);
+        float miter_len = hw / sin_half;
+
+        if (miter_len > 4.0 * hw || miter_len < 1.05 * hw) {
+            vektor_vb_add_triangle(vb, outer1, corner, outer2,
+                                   style.stroke_color);
+            vektor_vb_add_triangle(vb, inner1, corner, inner2,
+                                   style.stroke_color);
+            continue;
+        }
 
         V2 outer_miter = line_intersection(vec2_add(corner, off1), d1,
                                            vec2_add(corner, off2), d2);

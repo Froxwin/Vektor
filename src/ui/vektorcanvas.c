@@ -160,9 +160,9 @@ void vektor_canvas_geometry_changed(VektorCanvasRenderInfo* renderInfo) {
 
         shape_vertex_count = vb.count;
 
-        
         // create selection quad if a shape is selected
-        VektorBBox bbox = vektor_primitive_get_bbox(selectedShape->base.primitive);
+        VektorBBox bbox =
+            vektor_primitive_get_bbox(selectedShape->base.primitive);
         // expand it a little so it is not inset
         bbox = vektor_bbox_expand(bbox, 0.03f);
 
@@ -196,7 +196,7 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
 
     // PASS 2 - draw selection quads
     if (vb.count > shape_vertex_count) {
-        //g_print("vdelta: %zu\n", vb.count - shape_vertex_count);
+        // g_print("vdelta: %zu\n", vb.count - shape_vertex_count);
         float time =
             (g_get_monotonic_time() - renderInfo->startupTime) / 10000000.0f;
 

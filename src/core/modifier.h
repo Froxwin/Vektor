@@ -3,9 +3,7 @@
 
 #include "src/core/primitives.h"
 
-typedef enum {
-    VEKTOR_MODIFIER_BEVEL
-} VektorModifierType;
+typedef enum { VEKTOR_MODIFIER_BEVEL } VektorModifierType;
 
 typedef struct VektorModifier {
     VektorModifierType type;
@@ -35,10 +33,13 @@ typedef struct VektorShapeNodeBuffer {
 
 VektorShapeNode vektor_shapenode_new(VektorShape shape);
 VektorShape* vektor_shapenode_get_evaluated(VektorShapeNode* shapeNode);
-void vektor_shapenode_modifier_add(VektorShapeNode* shapeNode, VektorModifier* mod);
-void vektor_shapenode_modifier_remove(VektorShapeNode* shapeNode, VektorModifier* mod);
+void vektor_shapenode_modifier_add(VektorShapeNode* shapeNode,
+                                   VektorModifier* mod);
+void vektor_shapenode_modifier_remove(VektorShapeNode* shapeNode,
+                                      VektorModifier* mod);
 void vektor_shapenode_free(VektorShapeNode* shapeNode);
 
-void vektor_shapenodebuf_add(VektorShapeNodeBuffer* buffer, VektorShapeNode node);
+void vektor_shapenodebuf_add(VektorShapeNodeBuffer* buffer,
+                             VektorShapeNode node);
 
 #endif

@@ -118,13 +118,15 @@ begin_click_dispatch:
             VektorStyle style = (VektorStyle){
                 .stroke_color = state->currentColor, .stroke_width = 0.01};
 
-            vektor_shapenodebuf_add(
-                state->shapeBuffer, vektor_shapenode_new(vektor_shape_new(linePrimitive, style, 0)));
+            vektor_shapenodebuf_add(state->shapeBuffer,
+                                    vektor_shapenode_new(vektor_shape_new(
+                                        linePrimitive, style, 0)));
 
             state->selectedShape =
                 &(state->shapeBuffer->nodes[state->shapeBuffer->count - 1]);
 
-        } else if (state->selectedShape->base.primitive.kind != VEKTOR_POLYLINE) {
+        } else if (state->selectedShape->base.primitive.kind !=
+                   VEKTOR_POLYLINE) {
             // selecting a tool resets the selection, so this condition
             // should not happen
             g_warning("Invalid selected primitive; polyline expected");
@@ -134,7 +136,8 @@ begin_click_dispatch:
 
         vektor_polyline_add_point(state->selectedShape->base.primitive.polyline,
                                   pos);
-        state->selectedShape->base.bbox = vektor_primitive_get_bbox(state->selectedShape->base.primitive);
+        state->selectedShape->base.bbox =
+            vektor_primitive_get_bbox(state->selectedShape->base.primitive);
 
         // polyline's handle count is not fixed, so we have to add them manually
         vektor_shape_add_handle(&state->selectedShape->base, pos);
@@ -148,20 +151,24 @@ begin_click_dispatch:
                 (VektorPrimitive){.kind = VEKTOR_POLYGON, .polygon = polygon};
             VektorStyle style = (VektorStyle){
                 .stroke_color = state->currentColor, .stroke_width = 0.01};
-            vektor_shapenodebuf_add(
-                state->shapeBuffer, vektor_shapenode_new(vektor_shape_new(polygonPrimitive, style, 0)));
+            vektor_shapenodebuf_add(state->shapeBuffer,
+                                    vektor_shapenode_new(vektor_shape_new(
+                                        polygonPrimitive, style, 0)));
 
             state->selectedShape =
                 &(state->shapeBuffer->nodes[state->shapeBuffer->count - 1]);
 
-        } else if (state->selectedShape->base.primitive.kind != VEKTOR_POLYGON) {
+        } else if (state->selectedShape->base.primitive.kind !=
+                   VEKTOR_POLYGON) {
             g_warning("Invalid selected primitive; polygon expected");
             vektor_appstate_deselect_shape(state);
             goto begin_click_dispatch; // retry
         }
 
-        vektor_polygon_add_point(state->selectedShape->base.primitive.polygon, pos);
-        state->selectedShape->base.bbox = vektor_primitive_get_bbox(state->selectedShape->base.primitive);
+        vektor_polygon_add_point(state->selectedShape->base.primitive.polygon,
+                                 pos);
+        state->selectedShape->base.bbox =
+            vektor_primitive_get_bbox(state->selectedShape->base.primitive);
 
         // polygon's handle count is not fixed, so we have to add them manually
         vektor_shape_add_handle(&state->selectedShape->base, pos);
@@ -174,21 +181,26 @@ begin_click_dispatch:
         VektorStyle style = (VektorStyle){.stroke_color = state->currentColor,
                                           .stroke_width = 0.01};
         vektor_shapenodebuf_add(
-                state->shapeBuffer, vektor_shapenode_new(vektor_shape_new(circlePrimitive, style, 0)));
+            state->shapeBuffer,
+            vektor_shapenode_new(vektor_shape_new(circlePrimitive, style, 0)));
 
         state->selectedShape =
             &(state->shapeBuffer->nodes[state->shapeBuffer->count - 1]);
 
         vektor_circle_free(circle);
 
-        vektor_circle_set_center(&state->selectedShape->base.primitive.circle, pos);
-        vektor_circle_set_radius(&state->selectedShape->base.primitive.circle, 0.1f);
+        vektor_circle_set_center(&state->selectedShape->base.primitive.circle,
+                                 pos);
+        vektor_circle_set_radius(&state->selectedShape->base.primitive.circle,
+                                 0.1f);
 
-        state->selectedShape->base.bbox = vektor_primitive_get_bbox(state->selectedShape->base.primitive);
+        state->selectedShape->base.bbox =
+            vektor_primitive_get_bbox(state->selectedShape->base.primitive);
 
-        vektor_circle_create_handles(&state->selectedShape->base.primitive.circle,
-                                     &state->selectedShape->base.handles,
-                                     &state->selectedShape->base.handleCount);
+        vektor_circle_create_handles(
+            &state->selectedShape->base.primitive.circle,
+            &state->selectedShape->base.handles,
+            &state->selectedShape->base.handleCount);
     } else if (state->selectedTool == VektorRectangleTool) {
 
         VektorRectangle* rect = vektor_rectangle_new();
@@ -197,28 +209,32 @@ begin_click_dispatch:
         VektorStyle style = (VektorStyle){.stroke_color = state->currentColor,
                                           .stroke_width = 0.01};
         vektor_shapenodebuf_add(
-                state->shapeBuffer, vektor_shapenode_new(vektor_shape_new(rectPrimitive, style, 0)));
+            state->shapeBuffer,
+            vektor_shapenode_new(vektor_shape_new(rectPrimitive, style, 0)));
 
         state->selectedShape =
             &(state->shapeBuffer->nodes[state->shapeBuffer->count - 1]);
 
         vektor_rectangle_free(rect);
 
-        vektor_rectangle_set_start(&state->selectedShape->base.primitive.rectangle,
-                                   pos);
-        vektor_rectangle_set_end(&state->selectedShape->base.primitive.rectangle,
-                                 vec2_add(pos, (V2){0.1f, 0.1f}));
+        vektor_rectangle_set_start(
+            &state->selectedShape->base.primitive.rectangle, pos);
+        vektor_rectangle_set_end(
+            &state->selectedShape->base.primitive.rectangle,
+            vec2_add(pos, (V2){0.1f, 0.1f}));
         vektor_rectangle_create_handles(
             &state->selectedShape->base.primitive.rectangle,
-            &state->selectedShape->base.handles, &state->selectedShape->base.handleCount);
+            &state->selectedShape->base.handles,
+            &state->selectedShape->base.handleCount);
 
-        state->selectedShape->base.bbox = vektor_primitive_get_bbox(state->selectedShape->base.primitive);
+        state->selectedShape->base.bbox =
+            vektor_primitive_get_bbox(state->selectedShape->base.primitive);
 
     } else if (state->selectedTool == VektorSelectionTool) {
         for (size_t i = 0; i < state->shapeBuffer->count; i++) {
             VektorBBox bbox = vektor_primitive_get_bbox(
                 state->shapeBuffer->nodes[i].base.primitive);
-            
+
             // expand the bbox a little so its not painful to
             // try to grab handles located on the border of said bbox
             bbox = vektor_bbox_expand(bbox, 0.02);
@@ -247,15 +263,16 @@ void vektor_appstate_canvas_drag_begin(GtkGestureDrag* gesture, gdouble x,
     position = m33_transform(m33_inverse(state->renderInfo->canvasMat),
                              (V2){position.x, position.y});
 
-    if(state->selectedShape != NULL) {
+    if (state->selectedShape != NULL) {
         VektorShapeNode* selectedShape = state->selectedShape;
 
         // get selected shape's handles and check
         // if we click any of them
-        for(size_t i = 0; i < selectedShape->base.handleCount; i++) {
-            VektorBBox bbox = vektor_shape_get_handle_bbox(selectedShape->base.handles[i]);
-            if(vektor_bbox_isinside(bbox, position)) {
-                 // clicked inside handle
+        for (size_t i = 0; i < selectedShape->base.handleCount; i++) {
+            VektorBBox bbox =
+                vektor_shape_get_handle_bbox(selectedShape->base.handles[i]);
+            if (vektor_bbox_isinside(bbox, position)) {
+                // clicked inside handle
                 state->heldHandleIndex = i;
                 vektor_canvas_geometry_changed(state->renderInfo);
                 break;
@@ -285,9 +302,10 @@ void vektor_appstate_canvas_drag_update(GtkGestureDrag* gesture, gdouble x,
                              (V2){position.x, position.y});
 
     // drag handle if selected
-    if(state->selectedShape != NULL && state->heldHandleIndex != -1) {
+    if (state->selectedShape != NULL && state->heldHandleIndex != -1) {
         state->selectedShape->base.handles[state->heldHandleIndex] = position;
-        vektor_shape_handles_updated(&state->selectedShape->base, &state->heldHandleIndex);
+        vektor_shape_handles_updated(&state->selectedShape->base,
+                                     &state->heldHandleIndex);
         vektor_canvas_geometry_changed(state->renderInfo);
     }
 }
