@@ -5,6 +5,7 @@ in vec2 vPos;
 out vec4 FragColor;
 
 uniform float uTime;
+uniform float uScale;
 uniform vec4 uColor1;
 uniform vec4 uColor2;
 uniform vec2 uMin;
@@ -12,7 +13,7 @@ uniform vec2 uMax;
 
 void main()
 {
-    float borderWidth = 0.008;
+    float borderWidth = 0.008 / uScale;
 
 
     float distX = min(vPos.x - uMin.x, uMax.x - vPos.x);
