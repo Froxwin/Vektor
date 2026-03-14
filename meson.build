@@ -25,6 +25,7 @@ src = files(
   'src/core/matrix.c',
   'src/core/primitives.c',
   'src/core/raster.c',
+  'src/core/modifier.c',
   'src/ui/uicontroller.c',
   'src/ui/vektorcanvas.c',
   'src/ui/widgets/colorwheel.c',

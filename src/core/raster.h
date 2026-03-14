@@ -4,6 +4,7 @@
 #include "primitives.h"
 
 #include "../util/color.h"
+#include "src/core/modifier.h"
 #include "stddef.h"
 #include "vector.h"
 #include <stddef.h>
@@ -48,10 +49,10 @@ void vektor_vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2,
 void vektor_vb_add_quad(VertexBuffer* vb, V2 v0, V2 v1, VektorColor color);
 
 void vektor_edge_to_triangles(VertexBuffer* vb, Edge e,
-                              VektorShapeBuffer* shape_buffer);
+                              VektorShapeNodeBuffer* node_buffer);
 void vektor_edges_to_triangles(VertexBuffer* vb, EdgeBuffer* edges,
-                               VektorShapeBuffer* shape_buffer);
-void vektor_rasterize(VertexBuffer* vb, VektorShapeBuffer* shapes,
+                               VektorShapeNodeBuffer* node_buffer) ;
+void vektor_vb_rasterize(VertexBuffer* vb, VektorShapeNodeBuffer* shapes,
                       double scale);
 
 #endif // RASTER_H_

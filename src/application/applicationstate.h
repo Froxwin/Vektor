@@ -4,7 +4,7 @@
 #include "../core/primitives.h"
 #include "../ui/uicontroller.h"
 #include "../ui/vektorcanvas.h"
-#include "src/core/raster.h"
+#include "src/core/modifier.h"
 
 typedef enum VektorAppTool {
     VektorSelectionTool,
@@ -20,13 +20,13 @@ typedef struct VektorAppState {
     VektorWidgetState* widgetState;
 
     VektorAppTool selectedTool;
-    VektorShape* selectedShape;
+    VektorShapeNode* selectedShape;
     int heldHandleIndex;
 
     VektorColor currentColor;
 
     // Logic space
-    VektorShapeBuffer* shapeBuffer;
+    VektorShapeNodeBuffer* shapeBuffer;
     // View space
     VektorCanvas* canvas;
     VektorCanvasRenderInfo* renderInfo;

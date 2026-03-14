@@ -2,6 +2,7 @@
 #include "epoxy/gl.h"
 #include "primitives.h"
 #include "src/core/matrix.h"
+#include "src/core/modifier.h"
 #include "src/core/vector.h"
 #include "stddef.h"
 #include <math.h>
@@ -68,11 +69,11 @@ void vektor_rectangle_tessellate(EdgeBuffer* buffer, VektorRectangle* rct,
     vektor_edgebuffer_add_edge(buffer, left);
 }
 
-void vektor_rasterize(VertexBuffer* vb, VektorShapeBuffer* shapes,
+void vektor_vb_rasterize(VertexBuffer* vb, VektorShapeNodeBuffer* nodes,
                       double scale) {
     EdgeBuffer edges = {0};
-    for (size_t i = 0; i < shapes->count; i++) {
-        VektorPrimitive* p = &shapes->shapes[i].primitive;
+    for (size_t i = 0; i < nodes->count; i++) {
+        VektorPrimitive* p = &nodes->nodes[i].base.primitive;
 
         switch (p->kind) {
         case VEKTOR_POLYLINE:
@@ -97,7 +98,7 @@ void vektor_rasterize(VertexBuffer* vb, VektorShapeBuffer* shapes,
         }
     }
 
-    vektor_edges_to_triangles(vb, &edges, shapes);
+    vektor_edges_to_triangles(vb, &edges, nodes);
 }
 
 void vektor_vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2,
@@ -133,7 +134,7 @@ void vektor_vb_add_quad(VertexBuffer* vb, V2 a, V2 b, VektorColor color) {
 }
 
 void vektor_edge_to_triangles(VertexBuffer* vb, Edge e,
-                              VektorShapeBuffer* shape_buffer) {
+                              VektorShapeNodeBuffer* node_buffer) {
     float dx = e.p2.x - e.p1.x;
     float dy = e.p2.y - e.p1.y;
     float len = sqrtf(dx * dx + dy * dy);
@@ -141,28 +142,28 @@ void vektor_edge_to_triangles(VertexBuffer* vb, Edge e,
         return;
 
     float px =
-        -dy / len * (shape_buffer->shapes[e.shape_id].style.stroke_width / 2);
+        -dy / len * (node_buffer->nodes[e.shape_id].base.style.stroke_width / 2);
     float py =
-        dx / len * (shape_buffer->shapes[e.shape_id].style.stroke_width / 2);
+        dx / len * (node_buffer->nodes[e.shape_id].base.style.stroke_width / 2);
 
-    V2 v0 = m33_transform(shape_buffer->shapes[e.shape_id].transform,
+    V2 v0 = m33_transform(node_buffer->nodes[e.shape_id].base.transform,
                           (V2){e.p1.x + px, e.p1.y + py});
-    V2 v1 = m33_transform(shape_buffer->shapes[e.shape_id].transform,
+    V2 v1 = m33_transform(node_buffer->nodes[e.shape_id].base.transform,
                           (V2){e.p1.x - px, e.p1.y - py});
-    V2 v2 = m33_transform(shape_buffer->shapes[e.shape_id].transform,
+    V2 v2 = m33_transform(node_buffer->nodes[e.shape_id].base.transform,
                           (V2){e.p2.x + px, e.p2.y + py});
-    V2 v3 = m33_transform(shape_buffer->shapes[e.shape_id].transform,
+    V2 v3 = m33_transform(node_buffer->nodes[e.shape_id].base.transform,
                           (V2){e.p2.x - px, e.p2.y - py});
 
     vektor_vb_add_triangle(vb, v0, v1, v2,
-                           shape_buffer->shapes[e.shape_id].style.stroke_color);
+                           node_buffer->nodes[e.shape_id].base.style.stroke_color);
     vektor_vb_add_triangle(vb, v2, v1, v3,
-                           shape_buffer->shapes[e.shape_id].style.stroke_color);
+                           node_buffer->nodes[e.shape_id].base.style.stroke_color);
 }
 
 void vektor_edges_to_triangles(VertexBuffer* vb, EdgeBuffer* edges,
-                               VektorShapeBuffer* shape_buffer) {
+                               VektorShapeNodeBuffer* node_buffer) {
     for (size_t i = 0; i < edges->count; i++) {
-        vektor_edge_to_triangles(vb, edges->edges[i], shape_buffer);
+        vektor_edge_to_triangles(vb, edges->edges[i], node_buffer);
     }
 }

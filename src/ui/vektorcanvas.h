@@ -5,6 +5,7 @@
 #include "../util/color.h"
 #include "gtk/gtk.h"
 #include "src/core/matrix.h"
+#include "src/core/modifier.h"
 #include "src/core/primitives.h"
 #include "uicontroller.h"
 
@@ -22,10 +23,10 @@ typedef struct VektorCanvas {
 
 typedef struct VektorCanvasRenderInfo {
     gint64 startupTime;
-    VektorShapeBuffer* shapes;
+    VektorShapeNodeBuffer* shapes;
 
     // a pointer to appstate->selectedShape
-    VektorShape** selectedShape;
+    VektorShapeNode** selectedShape;
     float zoom;
     float panX;
     float panY;
