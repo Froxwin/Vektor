@@ -281,16 +281,15 @@ static void on_scroll(GtkEventControllerScroll* controller, double dx,
     M33 mat =
         m33_mul(m33_translate(s->panX, s->panY),
                 m33_mul(m33_rotate(s->rotation), m33_scale(s->zoom, s->zoom)));
-    // M33 mat = m33_mul(m33_mul(m33_scale(s->zoom, s->zoom),
-    //                           m33_translate(s->panX, s->panY)),
-    //                   m33_rotate(s->rotation));
+
     m33_to_gl4(mat, s->canvasTransform);
     s->canvasMat = mat;
 
     GtkWidget* widget =
         gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(controller));
-    gtk_gl_area_queue_render(GTK_GL_AREA(widget));
-    // }
+    
+    vektor_canvas_geometry_changed(s);
+
 }
 
 static void on_pan_begin(GtkGestureDrag* gesture, double start_x,
@@ -362,7 +361,9 @@ static void on_pan_drag(GtkGestureDrag* gesture, double offset_x,
     }
     GtkWidget* widget =
         gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(gesture));
-    gtk_gl_area_queue_render(GTK_GL_AREA(widget));
+
+    //gtk_gl_area_queue_render(GTK_GL_AREA(widget));
+    vektor_canvas_geometry_changed(s);
 }
 
 void vektor_canvas_init(VektorWidgetState* state, VektorCanvas* canvasOut,
