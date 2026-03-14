@@ -52,7 +52,7 @@ void vektor_edge_to_triangles(VertexBuffer* vb, Edge e,
                               VektorShapeNodeBuffer* node_buffer);
 void vektor_edges_to_triangles(VertexBuffer* vb, EdgeBuffer* edges,
                                M33* transform, VektorStyle style, bool closed);
-void vektor_rasterize(VertexBuffer* vb, VektorShapeBuffer* shapes,
+void vektor_vb_rasterize(VertexBuffer* vb, VektorShapeNodeBuffer* shapes,
                       double scale);
 
 #endif // RASTER_H_

@@ -105,7 +105,6 @@ void vektor_vb_rasterize(VertexBuffer* vb, VektorShapeNodeBuffer* nodebuf,
         }
     }
 
-    vektor_edges_to_triangles(vb, &edges, nodes);
 }
 
 void vektor_vb_add_triangle(VertexBuffer* vb, V2 v0, V2 v1, V2 v2,
