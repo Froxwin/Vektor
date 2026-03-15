@@ -74,9 +74,13 @@ void vektor_vb_rasterize(VertexBuffer* vb, VektorShapeNodeBuffer* nodebuf,
                          double scale) {
     for (size_t i = 0; i < nodebuf->count; i++) {
         EdgeBuffer edges = {0};
-        VektorPrimitive* p = &nodebuf->nodes[i].base.primitive;
-        VektorStyle style = nodebuf->nodes[i].base.style;
-        M33 transform = nodebuf->nodes[i].base.transform;
+
+        vektor_shapenode_update(&nodebuf->nodes[i]);
+        VektorShape* currentShape = vektor_shapenode_get_evaluated(&nodebuf->nodes[i]);
+
+        VektorPrimitive* p = &currentShape->primitive;
+        VektorStyle style = currentShape->style;
+        M33 transform = currentShape->transform;
 
         switch (p->kind) {
         case VEKTOR_POLYLINE:

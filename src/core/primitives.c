@@ -450,9 +450,10 @@ VektorBBox vektor_bbox_expand(VektorBBox bbox, float val) {
 
 // ------ SHAPE METHODS ------
 
-VektorShape vektor_shape_new(VektorPrimitive prim, VektorStyle style,
+VektorShape* vektor_shape_new(VektorPrimitive prim, VektorStyle style,
                              int z_index) {
-    VektorShape shape = (VektorShape){.primitive = prim,
+    VektorShape* shape = malloc(sizeof(VektorShape));
+    *shape = (VektorShape){.primitive = prim,
                                       .style = style,
                                       .transform = m33_identity(),
                                       .z_index = z_index,
@@ -464,7 +465,7 @@ VektorShape vektor_shape_new(VektorPrimitive prim, VektorStyle style,
     the passed value's pointer to an array of handles remains valid in the
     passed copy.
     */
-    vektor_shape_create_handles(&shape);
+    vektor_shape_create_handles(shape);
     return shape;
 }
 

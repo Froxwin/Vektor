@@ -151,8 +151,8 @@ void vektor_canvas_geometry_changed(VektorCanvasRenderInfo* renderInfo) {
         VektorShapeNode* selectedShape = *renderInfo->selectedShape;
 
         // create handle quads if a shape is selected
-        for (size_t i = 0; i < selectedShape->base.handleCount; i++) {
-            V2 handle = selectedShape->base.handles[i];
+        for (size_t i = 0; i < selectedShape->base->handleCount; i++) {
+            V2 handle = selectedShape->base->handles[i];
             VektorBBox handleBbox = vektor_shape_get_handle_bbox(handle);
             vektor_vb_add_quad(&vb, handleBbox.min, handleBbox.max,
                                vektor_color_new(255, 255, 255, 255));
@@ -162,7 +162,7 @@ void vektor_canvas_geometry_changed(VektorCanvasRenderInfo* renderInfo) {
 
         // create selection quad if a shape is selected
         VektorBBox bbox =
-            vektor_primitive_get_bbox(selectedShape->base.primitive);
+            vektor_primitive_get_bbox(selectedShape->base->primitive);
         // expand it a little so it is not inset
         bbox = vektor_bbox_expand(bbox, 0.03f);
 
@@ -202,7 +202,7 @@ static gboolean render(GtkGLArea* a, GdkGLContext* ctx,
 
         // re-fetch bbox (we know a shape is selected)
         VektorBBox bbox = vektor_primitive_get_bbox(
-            (*(renderInfo->selectedShape))->base.primitive);
+            (*(renderInfo->selectedShape))->base->primitive);
         bbox = vektor_bbox_expand(bbox, 0.03f);
 
         glUseProgram(selection_shader_program);

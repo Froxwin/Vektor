@@ -31,6 +31,29 @@
                     </object>
                 </child>
 
+                <!--Another topbar for style control-->
+                <child>
+                    <object class="GtkBox">
+                        <property name="orientation">horizontal</property>
+                        <property name="hexpand">true</property>
+
+                        <child>
+                            <object class="GtkImage">
+                                <property name="icon-name">tool-pencil-symbolic</property>
+                                <property name="margin-start">10</property>
+                            </object>
+                        </child>
+
+                        <child>
+                            <object class="GtkEntry" id="thickness_entry">
+                                <property name="text">1</property>
+                                <property name="margin-start">10</property>
+                            </object>
+                        </child>
+
+                    </object>
+                </child>
+
                 <!--Main area below-->
                 <child>
                     <object class="GtkPaned" id="workspace_paned">

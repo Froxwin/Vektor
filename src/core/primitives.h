@@ -85,7 +85,7 @@ void vektor_rectangle_set_end(VektorRectangle* rct, V2 point);
 void vektor_rectangle_set_start(VektorRectangle* rct, V2 point);
 void vektor_rectangle_free(VektorRectangle* rct);
 
-VektorShape vektor_shape_new(VektorPrimitive prim, VektorStyle style,
+VektorShape* vektor_shape_new(VektorPrimitive prim, VektorStyle style,
                              int z_index);
 
 VektorBBox vektor_polyline_get_bbox(VektorPrimitive prim);
